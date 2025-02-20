@@ -14,7 +14,7 @@
 	{/if}
 	<Accordion.Root>
 		{#each matches as match}
-			<Accordion.Item value={match.metadata.map}>
+			<Accordion.Item value={match.metadata.matchid}>
 				<Accordion.Trigger>{match.metadata.map}</Accordion.Trigger>
 				<Accordion.Content>
 					<Players players={match.players} />
