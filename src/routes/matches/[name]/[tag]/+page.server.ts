@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import type { PageServerLoad } from '../../$types';
+import type { PageServerLoad } from './$types';
 import { getMatches } from '$lib/server/middleware';
 
 export const load: PageServerLoad = async ({ params }) => {
