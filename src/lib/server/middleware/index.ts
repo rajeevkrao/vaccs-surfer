@@ -10,7 +10,17 @@ export const getMatchesv2 = async (name: string, tag: string, region = 'ap') => 
 	return matches.data;
 };
 
-export const getMatch = async (matchId:string) => {
+export const getMmrByPuuid = async (puuid: string, region = 'ap', platform = 'pc') => {
+	const { data: mmr } = await api.get(`/v3/by-puuid/mmr/${region}/${platform}/${puuid}`);
+	return mmr.data;
+};
+
+export const getMmrByNameTag = async (name: string, tag: string, region = 'ap', platform = 'pc') => {
+	const { data: mmr } = await api.get(`/v3/mmr/${region}/${platform}/${name}/${tag}`);
+	return mmr.data;
+};
+
+export const getMatch = async (matchId: string) => {
 	const { data: match } = await api.get(`v2/match/${matchId}`);
 	return match.data;
-}
+};
