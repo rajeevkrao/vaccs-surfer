@@ -20,13 +20,14 @@
 			if (puuid === '' || !puuid) return alert('Please enter a valid PUUID');
 		}
 		if (inputType === 'nameTag') {
-			if (name === '' || tag === '' || !name || !tag) return alert('Please enter a valid Name and Tag');
+			if (name === '' || tag === '' || !name || !tag)
+				return alert('Please enter a valid Name and Tag');
 		}
 
 		if (inputType === 'nameTag' || dataType === 'matches') goto(`/matchesv2/${name}/${tag}`);
 		if (dataType === 'mmr') {
-			if(inputType === 'nameTag') goto(`/mmr?name=${name}&tag=${tag}&inputType=${inputType}`);
-			if(inputType === 'puuid') goto(`/mmr?puuid=${puuid}&inputType=${inputType}`);
+			if (inputType === 'nameTag') goto(`/mmr?name=${name}&tag=${tag}&inputType=${inputType}`);
+			if (inputType === 'puuid') goto(`/mmr?puuid=${puuid}&inputType=${inputType}`);
 		}
 	};
 
@@ -36,8 +37,10 @@
 		if (name.includes('#')) {
 			const [n, t] = name.split('#');
 			name = n;
-			if (t) tag = t;
-			tagEl.focus();
+			if (t) {
+				tag = t;
+				tagEl.focus();
+			}
 		}
 	};
 </script>
@@ -67,7 +70,7 @@
 	</Card.Header>
 	<Card.Content>
 		<div class="my-2 flex">
-			<Input bind:useRef={puuidEl} oninput={onNameChange} type="text" bind:value={puuid} />
+			<Input bind:useRef={puuidEl} type="text" bind:value={puuid} />
 		</div>
 		<div class="flex justify-end space-x-2">
 			<Button disabled on:click={() => submit('puuid', 'matches')}>Fetch Matches</Button>
