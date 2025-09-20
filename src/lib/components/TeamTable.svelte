@@ -3,7 +3,7 @@
 
 	type $$Props = {
 		match: any;
-		puuid: string;
+		puuid: string | null;
 	};
 
 	let data: $$Props = $props();
@@ -12,7 +12,7 @@
 		const player = data.match.players.all_players.find(
 			(player: any) => player.puuid === data.puuid
 		);
-		const team = player?.team.toLowerCase() as 'red' | 'blue';
+		const team = player?.team.toLowerCase() as 'red' | 'blue' || 'blue';
 		return team;
 	});
 
@@ -92,7 +92,7 @@
 				<th>Econ Rating</th>
 				<th>First Bloods</th>
 				<th>Plants</th>
-				<th>defuses</th>
+				<th>Defuses</th>
 			</tr>
 		</thead>
 		<tbody>

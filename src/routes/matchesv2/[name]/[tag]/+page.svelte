@@ -36,7 +36,7 @@
 	function redirectToMatch(match: any) {
 		const matchId = match.meta.id;
 		const puuid = match.stats.puuid;
-		goto(`/match/${matchId}/${puuid}`);
+		goto(`/match/${matchId}?puuid=${puuid}`);
 	}
 
 	let { data }: PageProps = $props();
