@@ -20,7 +20,12 @@
 			match.players.all_players.find((player: any) => player.puuid === puuid)?.team.toLowerCase() ||
 			'blue';
 		const oppoTeam = playerTeam === 'red' ? 'blue' : 'red';
-		const status = match.teams[playerTeam]?.has_won ? 'VICTORY' : 'DEFEAT';
+		let status = 'DRAW';
+		if (match.teams[playerTeam]?.has_won) {
+			status = 'VICTORY';
+		} else if (match.teams[oppoTeam]?.has_won) {
+			status = 'DEFEAT';
+		}
 		const text = `${match.teams[playerTeam]?.rounds_won} ${status} ${match.teams[oppoTeam]?.rounds_won}`;
 		return text;
 	}

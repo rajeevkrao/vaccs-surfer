@@ -57,3 +57,12 @@ export const flyAndScale = (
 		easing: cubicOut
 	};
 };
+
+export function generateDistinctColors(count = 10, lightness = 40) {  // Added lightness param, default to 30% for darker shades
+  const colors = [];
+  for (let i = 0; i < count; i++) {
+    const hue = Math.floor((i * 360) / count);  // Evenly space hues
+    colors.push(`hsl(${hue}, 70%, ${lightness}%)`);  // Use provided lightness (lower = darker)
+  }
+  return colors;
+}

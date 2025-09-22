@@ -17,6 +17,9 @@
 			}
 			partyMap[partyId].push(`${player.name}#${player.tag}`);
 		});
+		for (const [key, value] of Object.entries(partyMap)) {
+			if (value.length === 1) delete partyMap[key];
+		}	
 		return partyMap;
 	});
 </script>
