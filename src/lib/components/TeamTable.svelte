@@ -126,7 +126,7 @@
 					<td class="flex items-center text-left"
 						><img
 							class="w-[10%]"
-							alt={player.assets.agent.small}
+							alt={player.character}
 							src={player.assets.agent.small}
 						/>{#if data.match.metadata.mode === 'Competitive'}<img
 								class="w-[10%]"
