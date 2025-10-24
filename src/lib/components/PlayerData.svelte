@@ -1,5 +1,4 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { copyToClipboard } from '$lib/utils';
 
@@ -36,6 +35,7 @@
 		{data.accountData.puuid}</Badge
 	>
 
+    {#if data.mmrData }
 	<Badge class="bg-blue-500 text-2xl text-white dark:bg-blue-600" variant="outline"
 		><span>Current:</span>
 
@@ -46,7 +46,9 @@
 			src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${data.mmrData.current.tier.id}/smallicon.png`}
 		/>{data.mmrData.current.rr.toString().padStart(2, '0')}</Badge
 	>
+    {/if}
 
+    {#if data.mmrData }
 	<Badge class="bg-blue-500 text-2xl text-white dark:bg-blue-600" variant="outline"
 		><span>Peak[{data.mmrData.peak.season.short}]:</span>
 
@@ -57,6 +59,7 @@
 			src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${data.mmrData.peak.tier.id}/smallicon.png`}
 		/>{data.mmrData.peak.rr.toString().padStart(2, '0')}</Badge
 	>
+    {/if}
 </div>
 
 <!-- <div class="flex justify-around text-white">

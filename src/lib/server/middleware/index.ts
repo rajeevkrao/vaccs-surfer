@@ -26,13 +26,23 @@ export const getMatchesV2ByPuuid = async (puuid: string, region = 'ap') => {
 };
 
 export const getMmrByPuuid = async (puuid: string, region = 'ap', platform = 'pc') => {
-	const { data: mmr } = await api.get(`/v3/by-puuid/mmr/${region}/${platform}/${puuid}`);
-	return mmr.data;
+	try {
+		const { data: mmr } = await api.get(`/v3/by-puuid/mmr/${region}/${platform}/${puuid}`);
+		return mmr.data; 
+	} catch (err) {
+		console.log(err);
+		return null;
+	}
 };
 
 export const getMmrByNameTag = async (name: string, tag: string, region = 'ap', platform = 'pc') => {
-	const { data: mmr } = await api.get(`/v3/mmr/${region}/${platform}/${name}/${tag}`);
-	return mmr.data;
+	try {
+		const { data: mmr } = await api.get(`/v3/mmr/${region}/${platform}/${name}/${tag}`);
+		return mmr.data;
+	} catch (err) {
+		console.log(err);
+		return null;
+	}
 };
 
 export const getMatch = async (matchId: string) => {
