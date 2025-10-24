@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { generateDistinctColors } from '$lib/utils';
+	import Link from '$lib/components/Link.svelte';
 
 	type $$Props = {
 		match: any;
@@ -99,9 +100,9 @@
 		return count;
 	}
 
-	function redirectToPlayersMatch(name: string, tag: string) {
+	/* function redirectToPlayersMatch(name: string, tag: string) {
 		goto(`/matchesv2/${name}/${tag}`);
-	}
+	} */
 </script>
 
 <div class="text-white">
@@ -109,20 +110,17 @@
 		<thead>
 			<tr>
 				<th class="border-r border-gray-400 px-4">Player</th>
-				<th class="border-l border-r border-gray-400 px-4">ACS</th>
-				<th class="border-l border-r border-gray-400 px-4">K/D/A</th>
-				<th class="border-l border-r border-gray-400 px-4">Econ Rating</th>
-				<th class="border-l border-r border-gray-400 px-4">First Bloods</th>
-				<th class="border-l border-r border-gray-400 px-4">Plants</th>
+				<th class="border-r border-l border-gray-400 px-4">ACS</th>
+				<th class="border-r border-l border-gray-400 px-4">K/D/A</th>
+				<th class="border-r border-l border-gray-400 px-4">Econ Rating</th>
+				<th class="border-r border-l border-gray-400 px-4">First Bloods</th>
+				<th class="border-r border-l border-gray-400 px-4">Plants</th>
 				<th class="border-l border-gray-400 px-4">Defuses</th>
 			</tr>
 		</thead>
 		<tbody>
 			{#each allPlayers as player}
-				<tr
-					onclick={() => redirectToPlayersMatch(player.name, player.tag)}
-					style="background-color: #{getPlayerColor(player)}"
-				>
+				<tr style="background-color: #{getPlayerColor(player)}">
 					<td class="flex items-center text-left"
 						><img
 							class="w-[10%]"
@@ -133,7 +131,9 @@
 								title={player.currenttier_patched}
 								alt={player.currenttier}
 								src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${player.currenttier}/smallicon.png`}
-							/>{/if}{player.name}#{player.tag}
+							/>{/if}<Link class="cursor-pointer" href={`/matchesv2/${player.puuid}`}
+							>{player.name}#{player.tag}</Link
+						>
 						{#if parties.find((party) => party.includes(player.puuid))}<div
 								style="color: {colors[
 									parties.findIndex((party) => party.includes(player.puuid))
@@ -143,7 +143,9 @@
 							</div>{/if}</td
 					>
 					<td>{Math.floor(player.stats.score / data.match.metadata.rounds_played)}</td>
-					<td class="text-nowrap">{player.stats.kills} / {player.stats.deaths} / {player.stats.assists}</td>
+					<td class="text-nowrap"
+						>{player.stats.kills} / {player.stats.deaths} / {player.stats.assists}</td
+					>
 					<td>{calculateEconRating(player)}</td>
 					<td>{calculateFirstBloods(player, data.match)}</td>
 					<td>{calculatePlants(player, data.match)}</td>

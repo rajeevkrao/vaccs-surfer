@@ -59,10 +59,16 @@ export const flyAndScale = (
 };
 
 export function generateDistinctColors(count = 10, lightness = 40) {  // Added lightness param, default to 30% for darker shades
-  const colors = [];
-  for (let i = 0; i < count; i++) {
-    const hue = Math.floor((i * 360) / count);  // Evenly space hues
-    colors.push(`hsl(${hue}, 70%, ${lightness}%)`);  // Use provided lightness (lower = darker)
-  }
-  return colors;
+	const colors = [];
+	for (let i = 0; i < count; i++) {
+		const hue = Math.floor((i * 360) / count);  // Evenly space hues
+		colors.push(`hsl(${hue}, 70%, ${lightness}%)`);  // Use provided lightness (lower = darker)
+	}
+	return colors;
+}
+
+export function copyToClipboard(text: string) {
+	navigator.clipboard.writeText(text).catch((err) => {
+		console.error('Could not copy text: ', err);
+	});
 }

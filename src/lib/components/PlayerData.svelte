@@ -1,0 +1,92 @@
+<script lang="ts">
+	import * as Card from '$lib/components/ui/card/index.js';
+	import { Badge } from '$lib/components/ui/badge/index.js';
+	import { copyToClipboard } from '$lib/utils';
+
+	type $$Props = {
+		data: {
+			accountData: any;
+			mmrData: any;
+		};
+	};
+
+	let { data }: $$Props = $props();
+</script>
+
+<div class="flex flex-wrap gap-2 justify-between">
+	<Badge
+		class="cursor-pointer bg-blue-500 text-2xl text-white dark:bg-blue-600"
+		variant="outline"
+		onclick={() => copyToClipboard(`${data.accountData.name}#${data.accountData.tag}`)}
+		><span>ID:</span>
+		{data.accountData.name}#{data.accountData.tag}</Badge
+	>
+
+	<Badge class="bg-blue-500 text-2xl text-white dark:bg-blue-600" variant="outline"
+		><span>Account Level:</span>
+		{data.accountData.account_level}</Badge
+	>
+
+	<Badge
+		title={data.accountData.puuid}
+		class="block w-60 cursor-pointer truncate overflow-hidden bg-blue-500 text-left text-2xl text-white dark:bg-blue-600"
+		variant="outline"
+		onclick={() => copyToClipboard(data.accountData.puuid)}
+		><span>PUUID:</span>
+		{data.accountData.puuid}</Badge
+	>
+
+	<Badge class="bg-blue-500 text-2xl text-white dark:bg-blue-600" variant="outline"
+		><span>Current:</span>
+
+		<img
+			title={data.mmrData.current.tier.name}
+			class="h-8"
+			alt={data.mmrData.current.tier.id}
+			src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${data.mmrData.current.tier.id}/smallicon.png`}
+		/>{data.mmrData.current.rr.toString().padStart(2, '0')}</Badge
+	>
+
+	<Badge class="bg-blue-500 text-2xl text-white dark:bg-blue-600" variant="outline"
+		><span>Peak[{data.mmrData.peak.season.short}]:</span>
+
+		<img
+			title={data.mmrData.peak.tier.name}
+			class="h-8"
+			alt={data.mmrData.peak.tier.id}
+			src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${data.mmrData.peak.tier.id}/smallicon.png`}
+		/>{data.mmrData.peak.rr.toString().padStart(2, '0')}</Badge
+	>
+</div>
+
+<!-- <div class="flex justify-around text-white">
+	<Card.Root class="m-2">
+		<Card.Header>
+			<Card.Title class="text-center">Current</Card.Title>
+		</Card.Header>
+		<Card.Content class="flex items-center">
+			<img
+				title={data.mmrData.current.tier.name}
+				class="h-20"
+				alt={data.mmrData.current.tier.id}
+				src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${data.mmrData.current.tier.id}/smallicon.png`}
+			/>
+			{data.mmrData.current.rr}
+		</Card.Content>
+	</Card.Root>
+
+	<Card.Root class="m-2">
+		<Card.Header>
+			<Card.Title class="text-center">Peak - {data.mmrData.peak.season.short}</Card.Title>
+		</Card.Header>
+		<Card.Content class="flex items-center">
+			<img
+				title={data.mmrData.peak.tier.name}
+				class="h-20"
+				alt={data.mmrData.peak.tier.id}
+				src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${data.mmrData.peak.tier.id}/smallicon.png`}
+			/>
+			{data.mmrData.peak.rr}
+		</Card.Content>
+	</Card.Root>
+</div> -->
