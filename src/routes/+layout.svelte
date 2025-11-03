@@ -4,6 +4,7 @@
 
 	// @ts-expect-error this error occurs because this is js package
 	import ProgressBar from 'svelte-progress-bar';
+	import { Toaster } from 'svelte-french-toast';
 
 	import '../app.css';
 
@@ -26,5 +27,6 @@
 </div> -->
 
 <ProgressBar color="#0366d6" bind:this={progress} />
+<Toaster position="bottom-center" />
 
 {@render children()}

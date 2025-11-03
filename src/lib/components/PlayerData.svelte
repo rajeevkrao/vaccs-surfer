@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { copyToClipboard } from '$lib/utils';
+	import toast from 'svelte-french-toast';
 
 	type $$Props = {
 		data: {
@@ -12,11 +13,14 @@
 	let { data }: $$Props = $props();
 </script>
 
-<div class="flex flex-wrap gap-2 justify-between">
+<div class="flex flex-wrap justify-between gap-2">
 	<Badge
 		class="cursor-pointer bg-blue-500 text-2xl text-white dark:bg-blue-600"
 		variant="outline"
-		onclick={() => copyToClipboard(`${data.accountData.name}#${data.accountData.tag}`)}
+		onclick={() => {
+			copyToClipboard(`${data.accountData.name}#${data.accountData.tag}`);
+			toast.success('Copied ID to clipboard!');
+		}}
 		><span>ID:</span>
 		{data.accountData.name}#{data.accountData.tag}</Badge
 	>
@@ -30,36 +34,39 @@
 		title={data.accountData.puuid}
 		class="block w-60 cursor-pointer truncate overflow-hidden bg-blue-500 text-left text-2xl text-white dark:bg-blue-600"
 		variant="outline"
-		onclick={() => copyToClipboard(data.accountData.puuid)}
+		onclick={() => {
+			copyToClipboard(data.accountData.puuid);
+			toast.success('Copied PUUID to clipboard!');
+		}}
 		><span>PUUID:</span>
 		{data.accountData.puuid}</Badge
 	>
 
-    {#if data.mmrData }
-	<Badge class="bg-blue-500 text-2xl text-white dark:bg-blue-600" variant="outline"
-		><span>Current:</span>
+	{#if data.mmrData}
+		<Badge class="bg-blue-500 text-2xl text-white dark:bg-blue-600" variant="outline"
+			><span>Current:</span>
 
-		<img
-			title={data.mmrData.current.tier.name}
-			class="h-8"
-			alt={data.mmrData.current.tier.id}
-			src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${data.mmrData.current.tier.id}/smallicon.png`}
-		/>{data.mmrData.current.rr.toString().padStart(2, '0')}</Badge
-	>
-    {/if}
+			<img
+				title={data.mmrData.current.tier.name}
+				class="h-8"
+				alt={data.mmrData.current.tier.id}
+				src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${data.mmrData.current.tier.id}/smallicon.png`}
+			/>{data.mmrData.current.rr.toString().padStart(2, '0')}</Badge
+		>
+	{/if}
 
-    {#if data.mmrData }
-	<Badge class="bg-blue-500 text-2xl text-white dark:bg-blue-600" variant="outline"
-		><span>Peak[{data.mmrData.peak.season.short}]:</span>
+	{#if data.mmrData}
+		<Badge class="bg-blue-500 text-2xl text-white dark:bg-blue-600" variant="outline"
+			><span>Peak[{data.mmrData.peak.season.short}]:</span>
 
-		<img
-			title={data.mmrData.peak.tier.name}
-			class="h-8"
-			alt={data.mmrData.peak.tier.id}
-			src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${data.mmrData.peak.tier.id}/smallicon.png`}
-		/>{data.mmrData.peak.rr.toString().padStart(2, '0')}</Badge
-	>
-    {/if}
+			<img
+				title={data.mmrData.peak.tier.name}
+				class="h-8"
+				alt={data.mmrData.peak.tier.id}
+				src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${data.mmrData.peak.tier.id}/smallicon.png`}
+			/>{data.mmrData.peak.rr.toString().padStart(2, '0')}</Badge
+		>
+	{/if}
 </div>
 
 <!-- <div class="flex justify-around text-white">

@@ -2,6 +2,8 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { cubicOut } from 'svelte/easing';
 import type { TransitionConfig } from 'svelte/transition';
+import { AxiosError } from 'axios';
+import { error } from '@sveltejs/kit';
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -71,4 +73,11 @@ export function copyToClipboard(text: string) {
 	navigator.clipboard.writeText(text).catch((err) => {
 		console.error('Could not copy text: ', err);
 	});
+}
+
+export function checkRateLimitReset(err: any) {
+	if (!(err instanceof AxiosError)) return;
+	if (err?.status !== 429) return;
+	if (err?.response?.headers?.['x-ratelimit-remaining'] === "0")
+		throw error(429, `Rate limit exceeded. Try Again in ${err.response.headers['x-ratelimit-reset']} seconds`);
 }
