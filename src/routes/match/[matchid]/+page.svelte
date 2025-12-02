@@ -31,7 +31,7 @@
 	}
 </script>
 
-<div class="container bg-[#333]">
+<div class="bg-[#333] px-5">
 	<div class="flex space-x-2">
 		<Badge class="bg-blue-500 text-white dark:bg-blue-600" variant="outline"
 			>Server: {data.match.metadata.cluster}</Badge

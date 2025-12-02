@@ -7,6 +7,7 @@
 	import { Toaster } from 'svelte-french-toast';
 
 	import '../app.css';
+	import HomeButton from '$lib/components/HomeButton.svelte';
 
 	let progress: any;
 	let { children } = $props();
@@ -28,5 +29,7 @@
 
 <ProgressBar color="#0366d6" bind:this={progress} />
 <Toaster position="bottom-center" />
+
+<HomeButton />
 
 {@render children()}
