@@ -6,6 +6,7 @@
 	import type { PageProps } from './$types';
 	import { copyToClipboard } from '$lib/utils';
 	import toast from 'svelte-french-toast';
+	import { format } from 'date-fns';
 
 	let { data }: PageProps = $props();
 
@@ -48,7 +49,10 @@
 			>Time: {secsToTime(data.match.metadata.game_length)}</Badge
 		>
 		<Badge class="bg-blue-500 text-white dark:bg-blue-600" variant="outline"
-			>Started At: {new Date(data.match.metadata.game_start * 1000).toLocaleString()}</Badge
+			>Started At: {format(
+				new Date(data.match.metadata.game_start * 1000),
+				'dd-MMM-yyyy hh:mm:ss aa'
+			)}</Badge
 		>
 		<Badge
 			class="block w-40 cursor-pointer truncate overflow-hidden bg-blue-500 text-white dark:bg-blue-600 "

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { format } from 'date-fns';
 	import Link from './Link.svelte';
 
 	type Teams = {
@@ -45,7 +45,7 @@
 	function redirectToMatch(match: any) {
 		const matchId = match.meta.id;
 		const puuid = match.stats.puuid;
-        return `/match/${matchId}?puuid=${puuid}`;
+		return `/match/${matchId}?puuid=${puuid}`;
 
 		/* goto(`/match/${matchId}?puuid=${puuid}`); */
 	}
@@ -79,6 +79,7 @@
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<Link href={redirectToMatch(match)}>
 			<div
+				title={format(new Date(match.meta.started_at), 'dd-MMM-yyyy hh:mm:ss aa')}
 				class="my-1 flex h-20 cursor-pointer items-center gap-10 overflow-hidden text-white"
 				style="background-color: {getStatusColorFromText(getWinStatusFromMatch(match))}"
 			>
