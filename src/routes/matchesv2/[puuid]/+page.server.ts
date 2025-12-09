@@ -5,9 +5,11 @@ import { checkRateLimitReset } from '$lib/utils';
 
 export const load: PageServerLoad = async ({ params }) => {
 	try {
-		const accountData = await getAccountByPuuid(params.puuid);
-		const matchesData = await getMatchesV2ByPuuid(params.puuid);
-		const mmrData = await getMmrByPuuid(params.puuid);
+		const [accountData, matchesData, mmrData] = await Promise.all([
+			getAccountByPuuid(params.puuid),
+			getMatchesV2ByPuuid(params.puuid),
+			getMmrByPuuid(params.puuid)
+		]);
 
 		if (!matchesData || matchesData.length === 0) throw error(404, 'Not found');
 

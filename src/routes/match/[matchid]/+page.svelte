@@ -4,6 +4,8 @@
 	import Parties from '$lib/components/Parties.svelte';
 	import TeamTable from '$lib/components/TeamTable.svelte';
 	import type { PageProps } from './$types';
+	import { copyToClipboard } from '$lib/utils';
+	import toast from 'svelte-french-toast';
 
 	let { data }: PageProps = $props();
 
@@ -47,6 +49,14 @@
 		>
 		<Badge class="bg-blue-500 text-white dark:bg-blue-600" variant="outline"
 			>Started At: {new Date(data.match.metadata.game_start * 1000).toLocaleString()}</Badge
+		>
+		<Badge
+			class="block w-40 cursor-pointer truncate overflow-hidden bg-blue-500 text-white dark:bg-blue-600 "
+			variant="outline"
+			onclick={() => {
+				copyToClipboard(data.match.metadata.matchid);
+				toast.success('Copied Match ID to clipboard!');
+			}}>Match ID: {data.match.metadata.matchid}</Badge
 		>
 	</div>
 	<h1 class="text-center text-5xl text-white">{getWinStatusForPlayer(data.match, data.puuid)}</h1>
