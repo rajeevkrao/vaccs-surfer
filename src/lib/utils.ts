@@ -9,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-export type InputType = 'nameTag' | 'puuid';
+export type InputType = 'nameTag' | 'puuid' | 'matchId';
 export type DataType = 'matches' | 'mmr';
 
 type FlyAndScaleParams = {

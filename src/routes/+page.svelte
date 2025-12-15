@@ -9,10 +9,12 @@
 	let name: string;
 	let tag: string;
 	let puuid: string;
+	let matchId: string;
 
 	let nameEl: any;
 	let tagEl: any;
 	let puuidEl: any;
+	let matchIdEl: any;
 
 	let inputMode: InputType = 'nameTag';
 
@@ -24,6 +26,11 @@
 			if (name === '' || tag === '' || !name || !tag)
 				return alert('Please enter a valid Name and Tag');
 		}
+		if (inputType === 'matchId') {
+			if (matchId === '' || !matchId) return alert('Please enter a valid Match ID');
+		}
+
+		if (inputType === 'matchId') goto(`/match/${matchId}`)
 
 		if (dataType === 'matches') {
 			if (inputType === 'nameTag') goto(`/matchesv2/${name}/${tag}`);
@@ -37,8 +44,16 @@
 	};
 
 	const onNameChange = (e: Event) => {
+		const uuidAnyVersionRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 		const input = e.target as HTMLInputElement;
 		name = input.value;
+		console.log('er', uuidAnyVersionRegex.test(name));
+		if (uuidAnyVersionRegex.test(name)) {
+			puuid = name;
+			name = '';
+			tag = '';
+			puuidEl.focus();
+		}
 		if (name.includes('#')) {
 			const [n, t] = name.split('#');
 			name = n;
@@ -92,6 +107,25 @@
 		<div class="flex justify-end space-x-2">
 			<Button on:click={() => submit('puuid', 'matches')}>Fetch Matches</Button>
 			<Button on:click={() => submit('puuid', 'mmr')}>Fetch MMR</Button>
+		</div>
+	</Card.Content>
+</Card.Root>
+
+<Card.Root class="m-2">
+	<Card.Header>
+		<Card.Title>MATCH ID</Card.Title>
+	</Card.Header>
+	<Card.Content>
+		<div class="my-2 flex">
+			<Input
+				bind:useRef={matchIdEl}
+				type="text"
+				bind:value={matchId}
+				onfocus={() => (inputMode = 'matchId')}
+			/>
+		</div>
+		<div class="flex justify-end space-x-2">
+			<Button on:click={() => submit('matchId', 'matches')}>Fetch Match</Button>
 		</div>
 	</Card.Content>
 </Card.Root>
