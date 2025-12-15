@@ -2,6 +2,7 @@
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { copyToClipboard } from '$lib/utils';
 	import toast from 'svelte-french-toast';
+	import RankProtectionShield from './RankProtectionShield.svelte';
 
 	type $$Props = {
 		data: {
@@ -51,7 +52,8 @@
 				class="h-8"
 				alt={data.mmrData.current.tier.id}
 				src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${data.mmrData.current.tier.id}/smallicon.png`}
-			/>{data.mmrData.current.rr.toString().padStart(2, '0')}</Badge
+			/>{data.mmrData.current.rr.toString().padStart(2, '0')}
+			<RankProtectionShield rankData={data.mmrData.current} /></Badge
 		>
 	{/if}
 
