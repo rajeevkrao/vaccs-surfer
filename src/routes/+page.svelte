@@ -2,9 +2,13 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
+	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import { goto } from '$app/navigation';
+	import toast from 'svelte-french-toast';
+	import { onMount } from 'svelte';
 
 	import type { InputType, DataType } from '$lib/utils.js';
+	import Badge from '$lib/components/ui/badge/badge.svelte';
 
 	let name: string;
 	let tag: string;
@@ -18,19 +22,30 @@
 
 	let inputMode: InputType = 'nameTag';
 
+	let isSheetOpen = false;
+
+	let recentNameTags: string[] = [];
+
+	onMount(() => {
+		const raw = localStorage.getItem('recentNameTags');
+		recentNameTags = raw ? JSON.parse(raw) : [];
+	});
+
 	const submit = (inputType: InputType, dataType: DataType) => {
 		if (inputType === 'puuid') {
-			if (puuid === '' || !puuid) return alert('Please enter a valid PUUID');
+			if (puuid === '' || !puuid)
+				return toast.error('Please enter a valid PUUID', { position: 'top-center' });
 		}
 		if (inputType === 'nameTag') {
 			if (name === '' || tag === '' || !name || !tag)
-				return alert('Please enter a valid Name and Tag');
+				return toast.error('Please enter a valid Name and Tag', { position: 'top-center' });
 		}
 		if (inputType === 'matchId') {
-			if (matchId === '' || !matchId) return alert('Please enter a valid Match ID');
+			if (matchId === '' || !matchId)
+				return toast.error('Please enter a valid Match ID', { position: 'top-center' });
 		}
 
-		if (inputType === 'matchId') goto(`/match/${matchId}`)
+		if (inputType === 'matchId') goto(`/match/${matchId}`);
 
 		if (dataType === 'matches') {
 			if (inputType === 'nameTag') goto(`/matchesv2/${name}/${tag}`);
@@ -47,7 +62,6 @@
 		const uuidAnyVersionRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 		const input = e.target as HTMLInputElement;
 		name = input.value;
-		console.log('er', uuidAnyVersionRegex.test(name));
 		if (uuidAnyVersionRegex.test(name)) {
 			puuid = name;
 			name = '';
@@ -67,7 +81,15 @@
 
 <Card.Root class="m-2">
 	<Card.Header>
-		<Card.Title>Name & Tag</Card.Title>
+		<Card.Title>
+			Name & Tag
+			<Button
+				class="float-right"
+				onclick={() => {
+					isSheetOpen = true;
+				}}>Recents</Button
+			>
+		</Card.Title>
 	</Card.Header>
 	<Card.Content>
 		<div class="my-2 flex">
@@ -85,8 +107,8 @@
 			/>
 		</div>
 		<div class="flex justify-end space-x-2">
-			<Button on:click={() => submit('nameTag', 'matches')}>Fetch Matches</Button>
-			<Button on:click={() => submit('nameTag', 'mmr')}>Fetch MMR</Button>
+			<Button onclick={() => submit('nameTag', 'matches')}>Fetch Matches</Button>
+			<Button onclick={() => submit('nameTag', 'mmr')}>Fetch MMR</Button>
 		</div>
 	</Card.Content>
 </Card.Root>
@@ -105,8 +127,8 @@
 			/>
 		</div>
 		<div class="flex justify-end space-x-2">
-			<Button on:click={() => submit('puuid', 'matches')}>Fetch Matches</Button>
-			<Button on:click={() => submit('puuid', 'mmr')}>Fetch MMR</Button>
+			<Button onclick={() => submit('puuid', 'matches')}>Fetch Matches</Button>
+			<Button onclick={() => submit('puuid', 'mmr')}>Fetch MMR</Button>
 		</div>
 	</Card.Content>
 </Card.Root>
@@ -125,9 +147,27 @@
 			/>
 		</div>
 		<div class="flex justify-end space-x-2">
-			<Button on:click={() => submit('matchId', 'matches')}>Fetch Match</Button>
+			<Button onclick={() => submit('matchId', 'matches')}>Fetch Match</Button>
 		</div>
 	</Card.Content>
 </Card.Root>
+
+<Sheet.Root bind:open={isSheetOpen}>
+	<Sheet.Content class="overflow-y-auto max-h-screen" side="right">
+		<Sheet.Header>
+			<Sheet.Title>Recent Visited Accounts</Sheet.Title>
+			<!-- <Sheet.Description>Fully controlled, no Trigger component</Sheet.Description> -->
+		</Sheet.Header>
+		<div class="px-4 scroll-auto h-full">
+			{#each recentNameTags as nameTag}<Badge
+					onclick={() => {
+						const [name, tag] = (nameTag as string).split('#');
+						goto(`/matchesv2/${name}/${tag}`);
+					}}
+					class="m-1 cursor-pointer text-lg bg-blue-500">{nameTag}</Badge
+				>{/each}
+		</div>
+	</Sheet.Content>
+</Sheet.Root>
 
 <svelte:window onkeydown={(e) => e.key === 'Enter' && submit(inputMode, 'matches')} />

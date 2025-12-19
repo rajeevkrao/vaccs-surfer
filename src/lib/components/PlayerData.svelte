@@ -3,6 +3,7 @@
 	import { copyToClipboard } from '$lib/utils';
 	import toast from 'svelte-french-toast';
 	import RankProtectionShield from './RankProtectionShield.svelte';
+	import { UniqueStack } from '$lib/datatypes';
 
 	type $$Props = {
 		data: {
@@ -12,6 +13,17 @@
 	};
 
 	let { data }: $$Props = $props();
+
+	$effect(() => {
+		const nameTag = `${data.accountData.name}#${data.accountData.tag}`;
+
+		const raw = localStorage.getItem('recentNameTags');
+		const recentNameTags = raw ? new UniqueStack(JSON.parse(raw), 50) : new UniqueStack([], 50);
+
+		recentNameTags.add(nameTag);
+
+		localStorage.setItem('recentNameTags', JSON.stringify(recentNameTags.values()));
+	});
 </script>
 
 <div class="flex flex-wrap justify-between gap-2">
