@@ -8,6 +8,7 @@
 	import { onMount } from 'svelte';
 
 	import type { InputType, DataType } from '$lib/utils.js';
+	import { debounce } from '$lib/utils.js';
 	import Badge from '$lib/components/ui/badge/badge.svelte';
 
 	let name: string;
@@ -25,11 +26,26 @@
 	let isSheetOpen = false;
 
 	let recentNameTags: string[] = [];
+	let nameTagSearch: string = '';
 
 	onMount(() => {
 		const raw = localStorage.getItem('recentNameTags');
 		recentNameTags = raw ? JSON.parse(raw) : [];
 	});
+
+	const onSearch = (query: string) => {
+		const raw = localStorage.getItem('recentNameTags');
+		const storedNameTags = raw ? JSON.parse(raw) : [];
+		if (!query) {
+			recentNameTags = storedNameTags;
+			return;
+		}
+		recentNameTags = storedNameTags.filter((nameTag: string) =>
+			nameTag.toLowerCase().includes(query.toLowerCase())
+		);
+	};
+
+	const debouncedSearch = debounce(onSearch, 300);
 
 	const submit = (inputType: InputType, dataType: DataType) => {
 		if (inputType === 'puuid') {
@@ -153,18 +169,25 @@
 </Card.Root>
 
 <Sheet.Root bind:open={isSheetOpen}>
-	<Sheet.Content class="overflow-y-auto max-h-screen" side="right">
+	<Sheet.Content class="max-h-screen overflow-y-auto" side="right">
 		<Sheet.Header>
 			<Sheet.Title>Recent Visited Accounts</Sheet.Title>
 			<!-- <Sheet.Description>Fully controlled, no Trigger component</Sheet.Description> -->
 		</Sheet.Header>
-		<div class="px-4 scroll-auto h-full">
+		<div class="h-full scroll-auto px-4">
+			<Input
+				class="mb-2"
+				type="text"
+				placeholder="Search"
+				bind:value={nameTagSearch}
+				oninput={(e: any) => debouncedSearch(e.target.value)}
+			/>
 			{#each recentNameTags as nameTag}<Badge
 					onclick={() => {
 						const [name, tag] = (nameTag as string).split('#');
 						goto(`/matchesv2/${name}/${tag}`);
 					}}
-					class="m-1 cursor-pointer text-lg bg-blue-500">{nameTag}</Badge
+					class="m-1 cursor-pointer bg-blue-500 text-lg">{nameTag}</Badge
 				>{/each}
 		</div>
 	</Sheet.Content>

@@ -18,7 +18,7 @@
 		const nameTag = `${data.accountData.name}#${data.accountData.tag}`;
 
 		const raw = localStorage.getItem('recentNameTags');
-		const recentNameTags = raw ? new UniqueStack(JSON.parse(raw), 50) : new UniqueStack([], 50);
+		const recentNameTags = raw ? new UniqueStack(JSON.parse(raw), 500) : new UniqueStack([], 500);
 
 		recentNameTags.add(nameTag);
 

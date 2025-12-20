@@ -60,11 +60,12 @@ export const flyAndScale = (
 	};
 };
 
-export function generateDistinctColors(count = 10, lightness = 40) {  // Added lightness param, default to 30% for darker shades
+export function generateDistinctColors(count = 10, lightness = 40) {
+	// Added lightness param, default to 30% for darker shades
 	const colors = [];
 	for (let i = 0; i < count; i++) {
-		const hue = Math.floor((i * 360) / count);  // Evenly space hues
-		colors.push(`hsl(${hue}, 70%, ${lightness}%)`);  // Use provided lightness (lower = darker)
+		const hue = Math.floor((i * 360) / count); // Evenly space hues
+		colors.push(`hsl(${hue}, 70%, ${lightness}%)`); // Use provided lightness (lower = darker)
 	}
 	return colors;
 }
@@ -78,6 +79,20 @@ export function copyToClipboard(text: string) {
 export function checkRateLimitReset(err: any) {
 	if (!(err instanceof AxiosError)) return;
 	if (err?.status !== 429) return;
-	if (err?.response?.headers?.['x-ratelimit-remaining'] === "0")
-		throw error(429, `Rate limit exceeded. Try Again in ${err.response.headers['x-ratelimit-reset']} seconds`);
+	if (err?.response?.headers?.['x-ratelimit-remaining'] === '0')
+		throw error(
+			429,
+			`Rate limit exceeded. Try Again in ${err.response.headers['x-ratelimit-reset']} seconds`
+		);
+}
+
+export function debounce<T extends (...args: any[]) => void>(fn: T, delay = 300) {
+	let timer: ReturnType<typeof setTimeout>;
+
+	return (...args: Parameters<T>) => {
+		clearTimeout(timer);
+		timer = setTimeout(() => {
+			fn(...args);
+		}, delay);
+	};
 }
