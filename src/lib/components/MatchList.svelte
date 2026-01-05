@@ -1,6 +1,11 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import axios from 'axios';
 	import { format, subDays } from 'date-fns';
 	import Link from './Link.svelte';
+	import { selectBatched } from '$lib/utils';
+	import toast from 'svelte-french-toast';
+	import LoadMatchesToast from './LoadMatchesToast.svelte';
 
 	type Teams = {
 		red: number;
@@ -11,10 +16,14 @@
 		data: {
 			matchesData: any[];
 			gamemodesData: any[];
+			accountData: any;
 		};
 	};
 
 	let { data }: $$Props = $props();
+
+	let missingMatchesFlag = $state(false);
+	let batch = $state<number[]>([]);
 
 	let groupByDate = $derived.by<Record<string, any[]>>(() => {
 		const today = format(new Date(), 'dd-MMM-yyyy');
@@ -25,6 +34,39 @@
 			(acc[key] ??= []).push(item);
 			return acc;
 		}, {});
+	});
+
+	onMount(async () => {
+		const { data: currentMatchList } = await axios.get(
+			`/api/getCurrentMatchList?puuid=${data.accountData.puuid}`
+		);
+		const matchIds = currentMatchList.data.map((match: any) => match.MatchID);
+
+		const newMatches: { id: string; index: number }[] = [];
+		matchIds.forEach((id: string, index: number) => {
+			if (data.matchesData.findIndex((match) => match.meta.id === id) === -1) {
+				newMatches.push({ id, index });
+				console.log(`New match found: ${id} Index: ${index}`);
+			}
+		});
+		if (newMatches.length === 0) {
+			return;
+		}
+		missingMatchesFlag = true;
+
+		const batches = selectBatched(
+			newMatches.map((item) => item.index),
+			10
+		);
+
+		batch = batches;
+
+		console.log('Batches:', batches);
+		// TODO: Fetch matches with start index using the batch elements and update matchesData
+
+		return () => {
+			console.log('Dismissing toast...');
+		};
 	});
 
 	function getWinStatusFromMatch(match: any) {
@@ -80,6 +122,13 @@
 		}
 	}
 </script>
+
+<LoadMatchesToast
+  bind:show={missingMatchesFlag}
+	onclose={() => (missingMatchesFlag = false)}
+	puuid={data.accountData.puuid}
+	batches={batch}
+/>
 
 <div class="mt-3 bg-[#333]">
 	{#if data.matchesData.length === 0}

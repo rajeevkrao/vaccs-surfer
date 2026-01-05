@@ -96,3 +96,19 @@ export function debounce<T extends (...args: any[]) => void>(fn: T, delay = 300)
 		}, delay);
 	};
 }
+
+export const selectBatched = (arr: number[], step: number) => {
+	// Sort first for correct "next larger" logic
+	const sorted = [...arr].sort((a, b) => a - b);
+
+	const result = [];
+	let i = 0;
+	while (i < sorted.length) {
+		const current = sorted[i];
+		result.push(current);
+		const threshold = current + step;
+		i++;
+		while (i < sorted.length && sorted[i] < threshold) i++;
+	}
+	return result;
+};
