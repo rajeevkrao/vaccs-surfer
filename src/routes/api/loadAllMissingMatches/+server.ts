@@ -37,6 +37,6 @@ export const GET: RequestHandler = async ({ url }) => {
 				status: 429
 			});
 		}
-		throw err;
+		return new Response('Something went wrong while loading missing matches', { status: 500 });
 	}
 };
