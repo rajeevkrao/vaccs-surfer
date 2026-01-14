@@ -74,3 +74,16 @@ export const getCurrentMatchList = async (puuid: string, region = 'ap') => {
 	}
 	return result;
 };
+
+export const getMatchListByPuuid = async (
+	puuid: string,
+	startIndex = 0,
+	size = 5,
+	region = 'ap',
+	platform = 'pc'
+) => {
+	const response = await api.get(
+		`/v4/by-puuid/matches/${region}/${platform}/${puuid}?start=${startIndex}&size=${size}`
+	);
+	return response.data;
+};

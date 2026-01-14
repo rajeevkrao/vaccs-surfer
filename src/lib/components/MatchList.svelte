@@ -3,6 +3,8 @@
 	import axios from 'axios';
 	import { format, subDays } from 'date-fns';
 	import Link from './Link.svelte';
+	import MissingMatchContextMenu from './MissingMatchContextMenu.svelte';
+	import toast from 'svelte-french-toast';
 
 	type Teams = {
 		red: number;
@@ -53,6 +55,17 @@
 				(match: any) => data.matchesData.findIndex((m) => m.meta.id === match.meta.id) === -1
 			);
 	});
+
+	async function loadAllMissingMatches() {
+		toast.promise(axios.get(`/api/loadAllMissingMatches?puuid=${data.accountData.puuid}`), {
+			loading: 'Loading all missing matches...',
+			success: () => {
+				window.location.reload();
+				return 'Successfully loaded all missing matches';
+			},
+			error: (err) => err?.response?.data || 'Failed to load missing matches'
+		});
+	}
 
 	function getWinStatusFromMatch(match: any) {
 		if (match.meta.mode === 'Deathmatch') {
@@ -118,15 +131,17 @@
 			</div>
 			{#each matches as match}
 				{#if match.meta.partial}
-					<Link href={redirectToMatch(match)}>
-						<div
-							title={format(new Date(match.meta.started_at), 'dd-MMM-yyyy hh:mm:ss aa')}
-							class="my-1 flex h-20 items-center px-2 gap-10 overflow-hidden text-white"
-							style="background-color: #6c757d"
-						>
-							Match not loaded - Click to Load
-						</div>
-					</Link>
+					<MissingMatchContextMenu onLoadAll={() => loadAllMissingMatches()}>
+						<Link href={redirectToMatch(match)}>
+							<div
+								title={format(new Date(match.meta.started_at), 'dd-MMM-yyyy hh:mm:ss aa')}
+								class="my-1 flex h-20 items-center gap-10 overflow-hidden px-2 text-white"
+								style="background-color: #6c757d"
+							>
+								Match not loaded - Click to Load
+							</div>
+						</Link>
+					</MissingMatchContextMenu>
 				{:else}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_static_element_interactions -->

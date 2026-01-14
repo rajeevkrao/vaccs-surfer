@@ -2,7 +2,7 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { cubicOut } from 'svelte/easing';
 import type { TransitionConfig } from 'svelte/transition';
-import { AxiosError } from 'axios';
+import axios from 'axios';
 import { error } from '@sveltejs/kit';
 
 export function cn(...inputs: ClassValue[]) {
@@ -76,8 +76,8 @@ export function copyToClipboard(text: string) {
 	});
 }
 
-export function checkRateLimitReset(err: any) {
-	if (!(err instanceof AxiosError)) return;
+export function checkRateLimitReset(err: unknown) {
+	if (!axios.isAxiosError(err)) return;
 	if (err?.status !== 429) return;
 	if (err?.response?.headers?.['x-ratelimit-remaining'] === '0')
 		throw error(
@@ -86,10 +86,26 @@ export function checkRateLimitReset(err: any) {
 		);
 }
 
-export function debounce<T extends (...args: any[]) => void>(fn: T, delay = 300) {
+export const selectBatched = (arr: number[], step: number) => {
+	// Sort first for correct "next larger" logic
+	const sorted = [...arr].sort((a, b) => a - b);
+
+	const result = [];
+	let i = 0;
+	while (i < sorted.length) {
+		const current = sorted[i];
+		result.push(current);
+		const threshold = current + step;
+		i++;
+		while (i < sorted.length && sorted[i] < threshold) i++;
+	}
+	return result;
+};
+
+export function debounce<T extends (...args: unknown[]) => void>(fn: T, delay = 300) {
 	let timer: ReturnType<typeof setTimeout>;
 
-	return (...args: Parameters<T>) => {
+	return (...args: Parameters<T>): void => {
 		clearTimeout(timer);
 		timer = setTimeout(() => {
 			fn(...args);
