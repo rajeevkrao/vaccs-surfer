@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { generateDistinctColors } from '$lib/utils';
 	import Link from '$lib/components/Link.svelte';
+	import Warning from '$lib/components/Warning.svelte';
 
 	type $$Props = {
 		match: any;
@@ -30,6 +30,22 @@
 	});
 
 	let colors = $derived(generateDistinctColors(parties.length));
+
+	let afkPlayers = $derived.by(() => {
+		const playersObj: any = {};
+		data.match.rounds.forEach((round: any) => {
+			round.player_stats.forEach((player: any) => {
+				if (player.was_afk) {
+					if (!playersObj[player.player_puuid]) {
+						playersObj[player.player_puuid] = 1;
+					} else {
+						playersObj[player.player_puuid]++;
+					}
+				}
+			});
+		});
+		return playersObj;
+	});
 
 	let playerTeam: 'red' | 'blue' = $derived.by(() => {
 		const player = data.match.players.all_players.find(
@@ -140,8 +156,12 @@
 								]};-webkit-text-stroke: .5px black; font-weight: bold; margin-left: 5px; font-family: sans-serif;"
 							>
 								Party
-							</div>{/if}</td
-					>
+							</div>
+						{/if}
+						{#if afkPlayers[player.puuid]}
+							<Warning title={`AFK for ${afkPlayers[player.puuid]} rounds`} color="yellow" />
+						{/if}
+					</td>
 					<td>{Math.floor(player.stats.score / data.match.metadata.rounds_played)}</td>
 					<td class="text-nowrap"
 						>{player.stats.kills} / {player.stats.deaths} / {player.stats.assists}</td
