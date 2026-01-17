@@ -4,7 +4,6 @@
 	import { format, subDays } from 'date-fns';
 	import Link from './Link.svelte';
 	import { selectBatched } from '$lib/utils';
-	import toast from 'svelte-french-toast';
 	import LoadMatchesToast from './LoadMatchesToast.svelte';
 
 	type Teams = {
@@ -63,10 +62,6 @@
 
 		console.log('Batches:', batches);
 		// TODO: Fetch matches with start index using the batch elements and update matchesData
-
-		return () => {
-			console.log('Dismissing toast...');
-		};
 	});
 
 	function getWinStatusFromMatch(match: any) {
