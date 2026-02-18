@@ -2,6 +2,10 @@
 // for information about these interfaces
 declare global {
 	namespace App {
+		interface Error {
+			message: string;
+			retrySeconds?: number;
+		}
 		// interface Error {}
 		// interface Locals {}
 		// interface PageData {}

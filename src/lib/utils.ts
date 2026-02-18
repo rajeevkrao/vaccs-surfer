@@ -80,10 +80,10 @@ export function checkRateLimitReset(err: unknown) {
 	if (!axios.isAxiosError(err)) return;
 	if (err?.status !== 429) return;
 	if (err?.response?.headers?.['x-ratelimit-remaining'] === '0')
-		throw error(
-			429,
-			`Rate limit exceeded. Try Again in ${err.response.headers['x-ratelimit-reset']} seconds`
-		);
+		throw error(429, {
+			message: `Rate limit exceeded. Try Again in ${err.response.headers['x-ratelimit-reset']} seconds`,
+			retrySeconds: err.response.headers['x-ratelimit-reset']
+		});
 }
 
 export const selectBatched = (arr: number[], step: number) => {
