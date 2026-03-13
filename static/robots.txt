@@ -1,0 +1,7 @@
+User-agent: Googlebot
+Disallow: /matchesv2/
+Disallow: /match/
+
+User-agent: *
+Disallow: /matchesv2/
+Disallow: /match/
