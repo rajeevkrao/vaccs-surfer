@@ -10,6 +10,7 @@
 	import type { InputType, DataType } from '$lib/utils.js';
 	import { debounce } from '$lib/utils.js';
 	import Badge from '$lib/components/ui/badge/badge.svelte';
+	import { getRecentAccounts, searchRecentAccounts, type RecentAccount } from '$lib/db/indexeddb';
 
 	let name: string;
 	let tag: string;
@@ -25,27 +26,26 @@
 
 	let isSheetOpen = false;
 
-	let recentNameTags: string[] = [];
+	let recentAccounts: RecentAccount[] = [];
 	let nameTagSearch: string = '';
 
-	onMount(() => {
-		const raw = localStorage.getItem('recentNameTags');
-		recentNameTags = raw ? JSON.parse(raw) : [];
-	});
-
-	const onSearch = (query: string) => {
-		const raw = localStorage.getItem('recentNameTags');
-		const storedNameTags = raw ? JSON.parse(raw) : [];
-		if (!query) {
-			recentNameTags = storedNameTags;
-			return;
-		}
-		recentNameTags = storedNameTags.filter((nameTag: string) =>
-			nameTag.toLowerCase().includes(query.toLowerCase())
-		);
+	const loadRecentAccounts = async () => {
+		recentAccounts = await getRecentAccounts();
 	};
 
-	const debouncedSearch = debounce(onSearch, 300);
+	onMount(() => {
+		loadRecentAccounts();
+	});
+
+	const onSearch = async (query: string) => {
+		if (!query) {
+			recentAccounts = await getRecentAccounts();
+			return;
+		}
+		recentAccounts = await searchRecentAccounts(query);
+	};
+
+	const debouncedSearch = debounce(onSearch as (query: string) => void, 300);
 
 	const submit = (inputType: InputType, dataType: DataType) => {
 		if (inputType === 'puuid') {
@@ -172,7 +172,6 @@
 	<Sheet.Content class="max-h-screen overflow-y-auto" side="right">
 		<Sheet.Header>
 			<Sheet.Title>Recent Visited Accounts</Sheet.Title>
-			<!-- <Sheet.Description>Fully controlled, no Trigger component</Sheet.Description> -->
 		</Sheet.Header>
 		<div class="h-full scroll-auto px-4">
 			<Input
@@ -182,12 +181,11 @@
 				bind:value={nameTagSearch}
 				oninput={(e: any) => debouncedSearch(e.target.value)}
 			/>
-			{#each recentNameTags as nameTag}<Badge
+			{#each recentAccounts as account}<Badge
 					onclick={() => {
-						const [name, tag] = (nameTag as string).split('#');
-						goto(`/matchesv2/${name}/${tag}`);
+						goto(`/matchesv2/${account.puuid}`);
 					}}
-					class="m-1 cursor-pointer bg-blue-500 text-lg">{nameTag}</Badge
+					class="m-1 cursor-pointer bg-blue-500 text-lg">{account.name}#{account.tag}</Badge
 				>{/each}
 		</div>
 	</Sheet.Content>

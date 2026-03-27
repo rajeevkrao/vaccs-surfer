@@ -3,7 +3,7 @@
 	import { copyToClipboard } from '$lib/utils';
 	import toast from 'svelte-french-toast';
 	import RankProtectionShield from './RankProtectionShield.svelte';
-	import { UniqueStack } from '$lib/datatypes';
+	import { addRecentAccount } from '$lib/db/indexeddb';
 
 	type $$Props = {
 		data: {
@@ -15,14 +15,11 @@
 	let { data }: $$Props = $props();
 
 	$effect(() => {
-		const nameTag = `${data.accountData.name}#${data.accountData.tag}`;
-
-		const raw = localStorage.getItem('recentNameTags');
-		const recentNameTags = raw ? new UniqueStack(JSON.parse(raw), 500) : new UniqueStack([], 500);
-
-		recentNameTags.add(nameTag);
-
-		localStorage.setItem('recentNameTags', JSON.stringify(recentNameTags.values()));
+		addRecentAccount({
+			name: data.accountData.name,
+			tag: data.accountData.tag,
+			puuid: data.accountData.puuid
+		}).catch(console.error);
 	});
 </script>
 
@@ -68,7 +65,6 @@
 			<RankProtectionShield rankData={data.mmrData.current} /></Badge
 		>
 	{/if}
-
 
 	{#if data.mmrData.peak}
 		<Badge class="bg-blue-500 text-2xl text-white dark:bg-blue-600" variant="outline"
