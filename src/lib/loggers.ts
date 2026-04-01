@@ -30,3 +30,7 @@ export const logHsPercentage = (matchesdata: any) => {
 	const hsPercentage = totalShots > 0 ? (headShots / totalShots) * 100 : 0;
 	console.log(`Head shot percentage: ${hsPercentage.toFixed(2)}%`);
 };
+
+export const logNameTagPuuidForCsv = (accountData: any) => {
+	console.log(`${accountData.name},${accountData.tag},${accountData.puuid}`);
+};
