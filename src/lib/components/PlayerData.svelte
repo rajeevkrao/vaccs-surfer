@@ -52,7 +52,7 @@
 		{data.accountData.puuid}</Badge
 	>
 
-	{#if data.mmrData.current}
+	{#if data.mmrData?.current}
 		<Badge class="bg-blue-500 text-2xl text-white dark:bg-blue-600" variant="outline"
 			><span>Current:</span>
 
@@ -66,7 +66,7 @@
 		>
 	{/if}
 
-	{#if data.mmrData.peak}
+	{#if data.mmrData?.peak}
 		<Badge class="bg-blue-500 text-2xl text-white dark:bg-blue-600" variant="outline"
 			><span>Peak[{data.mmrData.peak.season.short}]:</span>
 
