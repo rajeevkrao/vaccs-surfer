@@ -32,5 +32,5 @@ export const logHsPercentage = (matchesdata: any) => {
 };
 
 export const logNameTagPuuidForCsv = (accountData: any) => {
-	console.log(`${accountData.name},${accountData.tag},${accountData.puuid}`);
+	console.log(`${accountData.name},${accountData.tag},${accountData.puuid},`);
 };
