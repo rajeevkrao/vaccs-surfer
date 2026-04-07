@@ -103,7 +103,7 @@
 
 	function getModeDisplayIcon(gamemode: string) {
 		const gamemodeName = gamemode === 'Unrated' ? 'Standard' : gamemode;
-		const url = data.gamemodesData.find(
+		const url = data.gamemodesData?.find(
 			(mode: any) => mode?.displayName === gamemodeName
 		)?.displayIcon;
 		return url;
