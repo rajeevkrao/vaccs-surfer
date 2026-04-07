@@ -148,7 +148,7 @@
 								alt={player.currenttier}
 								src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${player.currenttier}/smallicon.png`}
 							/>{/if}<Link class="cursor-pointer" href={`/matchesv2/${player.puuid}`}
-							>{player.name}#{player.tag}</Link
+							><span title={player.puuid}>{player.name}#{player.tag}</span></Link
 						>
 						{#if parties.find((party) => party.includes(player.puuid))}<div
 								style="color: {colors[
