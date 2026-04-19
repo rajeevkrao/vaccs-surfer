@@ -48,7 +48,13 @@
 		<Badge class="bg-blue-500 text-white dark:bg-blue-600" variant="outline"
 			>Time: {secsToTime(data.match.metadata.game_length)}</Badge
 		>
-		<Badge class="bg-blue-500 text-white dark:bg-blue-600" variant="outline"
+		<Badge
+			class="cursor-pointer bg-blue-500 text-white dark:bg-blue-600"
+			variant="outline"
+			onclick={() => {
+				copyToClipboard(data.match.metadata.game_start);
+				toast.success('Copied Match Start Timestamp to clipboard!');
+			}}
 			>Started At: {format(
 				new Date(data.match.metadata.game_start * 1000),
 				'dd-MMM-yyyy hh:mm:ss aa'
