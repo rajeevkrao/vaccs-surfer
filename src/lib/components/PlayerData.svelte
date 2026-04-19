@@ -4,6 +4,7 @@
 	import toast from 'svelte-french-toast';
 	import RankProtectionShield from './RankProtectionShield.svelte';
 	import { addRecentAccount } from '$lib/db/indexeddb';
+	import PuuidContextMenu from './PuuidContextMenu.svelte';
 
 	type $$Props = {
 		data: {
@@ -40,16 +41,22 @@
 		{data.accountData.account_level}</Badge
 	>
 
-	<Badge
-		title={data.accountData.puuid}
-		class="block w-60 cursor-pointer truncate overflow-hidden bg-blue-500 text-left text-2xl text-white dark:bg-blue-600"
-		variant="outline"
-		onclick={() => {
-			copyToClipboard(data.accountData.puuid);
-			toast.success('Copied PUUID to clipboard!');
-		}}
-		><span>PUUID:</span>
-		{data.accountData.puuid}</Badge
+	<PuuidContextMenu
+		name={data.accountData.name}
+		tag={data.accountData.tag}
+		puuid={data.accountData.puuid}
+	>
+		<Badge
+			title={data.accountData.puuid}
+			class="block w-60 cursor-pointer truncate overflow-hidden bg-blue-500 text-left text-2xl text-white dark:bg-blue-600"
+			variant="outline"
+			onclick={() => {
+				copyToClipboard(data.accountData.puuid);
+				toast.success('Copied PUUID to clipboard!');
+			}}
+			><span>PUUID:</span>
+			{data.accountData.puuid}</Badge
+		></PuuidContextMenu
 	>
 
 	{#if data.mmrData?.current}
