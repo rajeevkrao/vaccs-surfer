@@ -7,7 +7,7 @@
 	import toast from 'svelte-french-toast';
 	import { onMount } from 'svelte';
 
-	import type { InputType, DataType } from '$lib/utils.js';
+	import type { InputType } from '$lib/utils.js';
 	import { debounce } from '$lib/utils.js';
 	import Badge from '$lib/components/ui/badge/badge.svelte';
 	import { getRecentAccounts, searchRecentAccounts, type RecentAccount } from '$lib/db/indexeddb';
@@ -47,7 +47,7 @@
 
 	const debouncedSearch = debounce(onSearch as (query: string) => void, 300);
 
-	const submit = (inputType: InputType, dataType: DataType) => {
+	const submit = (inputType: InputType) => {
 		if (inputType === 'puuid') {
 			if (puuid === '' || !puuid)
 				return toast.error('Please enter a valid PUUID', { position: 'top-center' });
@@ -61,17 +61,9 @@
 				return toast.error('Please enter a valid Match ID', { position: 'top-center' });
 		}
 
-		if (inputType === 'matchId') goto(`/match/${matchId}`);
-
-		if (dataType === 'matches') {
-			if (inputType === 'nameTag') goto(`/matchesv2/${name}/${tag}`);
-			if (inputType === 'puuid') goto(`/matchesv2/${puuid}`);
-		}
-
-		if (dataType === 'mmr') {
-			if (inputType === 'nameTag') goto(`/mmr?name=${name}&tag=${tag}&inputType=${inputType}`);
-			if (inputType === 'puuid') goto(`/mmr?puuid=${puuid}&inputType=${inputType}`);
-		}
+		if (inputType === 'matchId') return goto(`/match/${matchId}`);
+		if (inputType === 'nameTag') return goto(`/matchesv2/${name}/${tag}`);
+		if (inputType === 'puuid') return goto(`/matchesv2/${puuid}`);
 	};
 
 	const onNameChange = (e: Event) => {
@@ -95,100 +87,143 @@
 	};
 </script>
 
-<Card.Root class="m-2">
-	<Card.Header>
-		<Card.Title>
-			Name & Tag
-			<Button
-				class="float-right"
-				onclick={() => {
-					isSheetOpen = true;
-				}}>Recents</Button
+<div
+	class="min-h-screen p-4"
+	style="background-image: url('/background.jpg'); background-size: cover; background-attachment: fixed; background-position: center;"
+>
+	<div class="mx-auto max-w-5xl space-y-6">
+		<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+			<Card.Root
+				class="border-l-4 border-none text-white shadow-xl"
+				style="background: linear-gradient(135deg, rgba(32, 189, 131, 0.15) 0%, rgba(17, 17, 17, 0.9) 100%); border-left: 4px solid #20bd83 !important;"
 			>
-		</Card.Title>
-	</Card.Header>
-	<Card.Content>
-		<div class="my-2 flex">
-			<Input
-				bind:useRef={nameEl}
-				oninput={onNameChange}
-				type="text"
-				bind:value={name}
-				onfocus={() => (inputMode = 'nameTag')}
-			/> # <Input
-				type="text"
-				bind:value={tag}
-				bind:useRef={tagEl}
-				onfocus={() => (inputMode = 'nameTag')}
-			/>
-		</div>
-		<div class="flex justify-end space-x-2">
-			<Button onclick={() => submit('nameTag', 'matches')}>Fetch Matches</Button>
-			<Button onclick={() => submit('nameTag', 'mmr')}>Fetch MMR</Button>
-		</div>
-	</Card.Content>
-</Card.Root>
+				<Card.Header>
+					<Card.Title class="flex items-center justify-between text-2xl font-bold">
+						Name & Tag
+						<Button
+							variant="outline"
+							size="sm"
+							class="border-[#20bd83] bg-transparent text-[#20bd83] hover:bg-[#20bd83] hover:text-white"
+							onclick={() => {
+								isSheetOpen = true;
+							}}>Recents</Button
+						>
+					</Card.Title>
+				</Card.Header>
+				<Card.Content>
+					<div class="my-4 flex items-center gap-3">
+						<Input
+							class="border-gray-700 bg-black/40 text-lg text-white"
+							bind:useRef={nameEl}
+							oninput={onNameChange}
+							type="text"
+							placeholder="Name"
+							bind:value={name}
+							onfocus={() => (inputMode = 'nameTag')}
+						/>
+						<span class="text-2xl font-bold text-gray-500">#</span>
+						<Input
+							class="border-gray-700 bg-black/40 text-lg text-white"
+							type="text"
+							placeholder="Tag"
+							bind:value={tag}
+							bind:useRef={tagEl}
+							onfocus={() => (inputMode = 'nameTag')}
+						/>
+					</div>
+					<div class="flex justify-end gap-3">
+						<Button
+							class="bg-[#20bd83] font-bold text-white hover:bg-[#1a9d6d]"
+							onclick={() => submit('nameTag')}>Fetch Matches</Button
+						>
+					</div>
+				</Card.Content>
+			</Card.Root>
 
-<Card.Root class="m-2">
-	<Card.Header>
-		<Card.Title>PUUID</Card.Title>
-	</Card.Header>
-	<Card.Content>
-		<div class="my-2 flex">
-			<Input
-				bind:useRef={puuidEl}
-				type="text"
-				bind:value={puuid}
-				onfocus={() => (inputMode = 'puuid')}
-			/>
+			<Card.Root
+				class="border-l-4 border-none text-white shadow-xl"
+				style="background: linear-gradient(135deg, rgba(3, 102, 214, 0.15) 0%, rgba(17, 17, 17, 0.9) 100%); border-left: 4px solid #0366d6 !important;"
+			>
+				<Card.Header>
+					<Card.Title class="text-2xl font-bold">PUUID</Card.Title>
+				</Card.Header>
+				<Card.Content>
+					<div class="my-4 flex">
+						<Input
+							class="border-gray-700 bg-black/40 text-lg text-white"
+							bind:useRef={puuidEl}
+							type="text"
+							placeholder="Enter PUUID"
+							bind:value={puuid}
+							onfocus={() => (inputMode = 'puuid')}
+						/>
+					</div>
+					<div class="flex justify-end gap-3">
+						<Button
+							class="bg-[#0366d6] font-bold text-white hover:bg-[#0256b9]"
+							onclick={() => submit('puuid')}>Fetch Matches</Button
+						>
+					</div>
+				</Card.Content>
+			</Card.Root>
 		</div>
-		<div class="flex justify-end space-x-2">
-			<Button onclick={() => submit('puuid', 'matches')}>Fetch Matches</Button>
-			<Button onclick={() => submit('puuid', 'mmr')}>Fetch MMR</Button>
-		</div>
-	</Card.Content>
-</Card.Root>
 
-<Card.Root class="m-2">
-	<Card.Header>
-		<Card.Title>MATCH ID</Card.Title>
-	</Card.Header>
-	<Card.Content>
-		<div class="my-2 flex">
-			<Input
-				bind:useRef={matchIdEl}
-				type="text"
-				bind:value={matchId}
-				onfocus={() => (inputMode = 'matchId')}
-			/>
-		</div>
-		<div class="flex justify-end space-x-2">
-			<Button onclick={() => submit('matchId', 'matches')}>Fetch Match</Button>
-		</div>
-	</Card.Content>
-</Card.Root>
+		<Card.Root
+			class="border-l-4 border-none text-white shadow-xl"
+			style="background: linear-gradient(135deg, rgba(197, 58, 71, 0.15) 0%, rgba(17, 17, 17, 0.9) 100%); border-left: 4px solid #c53a47 !important;"
+		>
+			<Card.Header>
+				<Card.Title class="text-2xl font-bold">MATCH ID</Card.Title>
+			</Card.Header>
+			<Card.Content>
+				<div class="my-4 flex">
+					<Input
+						class="border-gray-700 bg-black/40 text-lg text-white"
+						bind:useRef={matchIdEl}
+						type="text"
+						placeholder="Enter Match ID"
+						bind:value={matchId}
+						onfocus={() => (inputMode = 'matchId')}
+					/>
+				</div>
+				<div class="flex justify-end gap-3">
+					<Button
+						class="bg-[#c53a47] font-bold text-white hover:bg-[#a4303b]"
+						onclick={() => submit('matchId')}>Fetch Match</Button
+					>
+				</div>
+			</Card.Content>
+		</Card.Root>
+	</div>
+</div>
 
 <Sheet.Root bind:open={isSheetOpen}>
-	<Sheet.Content class="max-h-screen overflow-y-auto" side="right">
+	<Sheet.Content class="border-gray-800 bg-[#111] text-white" side="right">
 		<Sheet.Header>
-			<Sheet.Title>Recent Visited Accounts</Sheet.Title>
+			<Sheet.Title class="text-2xl font-bold text-white">Recent Accounts</Sheet.Title>
 		</Sheet.Header>
-		<div class="h-full scroll-auto px-4">
+		<div class="mt-6 h-full space-y-4 px-2">
 			<Input
-				class="mb-2"
+				class="border-gray-700 bg-black/40 text-white"
 				type="text"
-				placeholder="Search"
+				placeholder="Search recents..."
 				bind:value={nameTagSearch}
 				oninput={(e: any) => debouncedSearch(e.target.value)}
 			/>
-			{#each recentAccounts as account}<Badge
-					onclick={() => {
-						goto(`/matchesv2/${account.puuid}`);
-					}}
-					class="m-1 cursor-pointer bg-blue-500 text-lg">{account.name}#{account.tag}</Badge
-				>{/each}
+			<div class="flex flex-wrap gap-2">
+				{#each recentAccounts as account}
+					<Badge
+						onclick={() => {
+							goto(`/matchesv2/${account.puuid}`);
+						}}
+						class="cursor-pointer border-none bg-[#20bd83]/20 px-3 py-1 text-lg text-[#20bd83] transition-colors hover:bg-[#20bd83] hover:text-white"
+					>
+						{account.name}#{account.tag}
+					</Badge>
+				{/each}
+			</div>
 		</div>
 	</Sheet.Content>
 </Sheet.Root>
 
-<svelte:window onkeydown={(e) => e.key === 'Enter' && submit(inputMode, 'matches')} />
+<svelte:window onkeydown={(e) => e.key === 'Enter' && submit(inputMode)} />

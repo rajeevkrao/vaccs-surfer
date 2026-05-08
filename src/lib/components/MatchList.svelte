@@ -5,6 +5,7 @@
 	import Link from './Link.svelte';
 	import MissingMatchContextMenu from './MissingMatchContextMenu.svelte';
 	import toast from 'svelte-french-toast';
+	import { CircleChevronUp, CircleChevronDown } from 'lucide-svelte';
 
 	type Teams = {
 		red: number;
@@ -15,11 +16,14 @@
 		matchesData: any[];
 		gamemodesData: any[];
 		accountData: any;
+		mmrHistoryData: any;
 	};
 
 	let { data }: { data: $$Props } = $props();
 
 	let missingMatches = $state([]);
+
+	let mmrHistory = $derived(data.mmrHistoryData.history);
 
 	let groupByDate = $derived.by<Record<string, any[]>>(() => {
 		const matchesData = data.matchesData.concat(...missingMatches).sort((a, b) => {
@@ -56,12 +60,13 @@
 			);
 	});
 
-	async function loadAllMissingMatches() {
-		toast.promise(axios.get(`/api/loadAllMissingMatches?puuid=${data.accountData.puuid}`), {
-			loading: 'Loading all missing matches...',
+	async function loadAllMissingMatches(mode: 'smart' | 'burst' = 'burst') {
+		const url = mode === 'smart' ? '/api/loadAllMissingMatches/v2' : '/api/loadAllMissingMatches';
+		toast.promise(axios.get(`${url}?puuid=${data.accountData.puuid}`), {
+			loading: `Loading all missing matches (${mode})...`,
 			success: () => {
 				window.location.reload();
-				return 'Successfully loaded all missing matches';
+				return `Successfully loaded all missing matches (${mode})`;
 			},
 			error: (err) => err?.response?.data || 'Failed to load missing matches'
 		});
@@ -112,16 +117,20 @@
 	function getStatusColorFromText(text: string) {
 		switch (text) {
 			case 'VICTORY':
-				return '#1ab2a0';
+				return '#20bd83';
 			case 'DEFEAT':
-				return '#9b445b';
+				return '#c53a47';
 			default:
 				return '#6c757d'; // Default color for DRAW or unknown status
 		}
 	}
+
+	function getMmrHistoryForMatch(matchId: string) {
+		return mmrHistory?.find((item: any) => item.match_id === matchId);
+	}
 </script>
 
-<div class="mt-3 bg-[#333]">
+<div class="mt-3">
 	{#if data.matchesData.length === 0}
 		<p>No matches found.</p>
 	{:else}
@@ -131,7 +140,10 @@
 			</div>
 			{#each matches as match}
 				{#if match.meta.partial}
-					<MissingMatchContextMenu onLoadAll={() => loadAllMissingMatches()}>
+					<MissingMatchContextMenu
+						onLoadAllSmart={() => loadAllMissingMatches('smart')}
+						onLoadAllBurst={() => loadAllMissingMatches('burst')}
+					>
 						<Link href={redirectToMatch(match)}>
 							<div
 								title={format(new Date(match.meta.started_at), 'dd-MMM-yyyy hh:mm:ss aa')}
@@ -143,53 +155,92 @@
 						</Link>
 					</MissingMatchContextMenu>
 				{:else}
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<Link href={redirectToMatch(match)}>
 						<div
 							title={format(new Date(match.meta.started_at), 'dd-MMM-yyyy hh:mm:ss aa')}
-							class="my-1 flex h-20 cursor-pointer items-center gap-10 overflow-hidden text-white"
-							style="background-color: {getStatusColorFromText(getWinStatusFromMatch(match))}"
+							class="my-1 grid h-20 cursor-pointer grid-cols-3 items-center overflow-hidden border-l-4 text-white"
+							style="background: linear-gradient(90deg, {getStatusColorFromText(
+								getWinStatusFromMatch(match)
+							)}22 0%, #111 100%); border-color: {getStatusColorFromText(
+								getWinStatusFromMatch(match)
+							)}"
 						>
-							<img
-								class="h-full"
-								alt={match.stats.character.name}
-								src={`https://media.valorant-api.com/agents/${match.stats.character.id}/displayicon.png`}
-							/>
-
-							{#if match.meta.mode === 'Competitive'}
+							<div class="flex items-center gap-10">
 								<img
-									class="h-[80%]"
-									alt={match.stats.tier}
-									src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${match.stats.tier}/smallicon.png`}
+									class="h-20"
+									alt={match.stats.character.name}
+									src={`https://media.valorant-api.com/agents/${match.stats.character.id}/displayicon.png`}
 								/>
-							{:else}
-								<img
-									title={match.meta.mode}
-									class="h-[80%]"
-									alt={match.meta.mode}
-									src={getModeDisplayIcon(match.meta.mode)}
-								/>
-							{/if}
 
-							<div>
+								{#if match.meta.mode === 'Competitive'}
+									{@const history = getMmrHistoryForMatch(match.meta.id)}
+									<div class="relative flex h-20 flex-col items-center justify-center">
+										<img
+											class="h-[70%]"
+											alt={match.stats.tier}
+											src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${match.stats.tier}/smallicon.png`}
+										/>
+										{#if history}
+											{#if match.stats.tier < history.tier.id}
+												<div class="absolute -right-2 top-2 text-[#20bd83]">
+													<CircleChevronUp size={16} strokeWidth={3} />
+												</div>
+											{:else if match.stats.tier > history.tier.id}
+												<div class="absolute -right-2 top-2 text-[#c53a47]">
+													<CircleChevronDown size={16} strokeWidth={3} />
+												</div>
+											{/if}
+											<div
+												class="text-xs font-bold"
+												style="color: {history.last_change >= 0 ? '#20bd83' : '#c53a47'}"
+											>
+												{history.last_change > 0 ? '+' : ''}{history.last_change}
+											</div>
+										{/if}
+									</div>
+								{:else}
+									<img
+										title={match.meta.mode}
+										class="h-16"
+										alt={match.meta.mode}
+										src={getModeDisplayIcon(match.meta.mode)}
+									/>
+								{/if}
+
 								<div>
-									KDA {match.stats.kills} / {match.stats.deaths} / {match.stats.assists}
-								</div>
-								<div>
-									Score {match.stats.score}
+									<div>
+										KDA {match.stats.kills} / {match.stats.deaths} / {match.stats.assists}
+									</div>
+									<div class="text-sm opacity-70">
+										Score {match.stats.score}
+									</div>
 								</div>
 							</div>
 
-							<div class="mx-auto text-center">
-								<div>{getWinStatusFromMatch(match)}</div>
-								<div>
-									{#if match.meta.mode === 'Deathmatch'}{match.stats.kills}{:else}
-										{getScoreString(match.teams, match.stats.team)}{/if}
+							<div class="text-center">
+								<div
+									class="text-xl font-bold"
+									style="color: {getStatusColorFromText(getWinStatusFromMatch(match))}"
+								>
+									{getWinStatusFromMatch(match)}
+								</div>
+								<div class="text-lg opacity-80">
+									{#if match.meta.mode === 'Deathmatch'}
+										{match.stats.kills}
+									{:else}
+										{@const [teamScore, otherScore] = getScoreString(
+											match.teams,
+											match.stats.team
+										).split(' - ')}
+										<span style="color: {getStatusColorFromText(getWinStatusFromMatch(match))}"
+											>{teamScore}</span
+										>
+										- {otherScore}
+									{/if}
 								</div>
 							</div>
 
-							<div class="ml-auto">
+							<div class="flex h-20 justify-end">
 								<img
 									title={match.meta.map.name}
 									class="h-full object-cover [mask-image:linear-gradient(to_right,transparent_0%,black_30%,black_100%)] [mask-repeat:no-repeat] [mask-size:100%_100%]"

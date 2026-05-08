@@ -14,7 +14,10 @@
 	});
 </script>
 
-<div class="bg-[#333]">
+<div
+	class="min-h-screen"
+	style="background-image: url('/background.jpg'); background-size: cover; background-attachment: fixed; background-position: center;"
+>
 	<PlayerData {data} />
 	<MatchList {data} />
 	<ScrollToTop />

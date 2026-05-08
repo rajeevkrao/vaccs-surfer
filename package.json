@@ -19,13 +19,13 @@
 		"@eslint/compat": "^1.2.5",
 		"@eslint/js": "^9.18.0",
 		"@internationalized/date": "^3.10.1",
-		"@lucide/svelte": "^0.561.0",
 		"@sveltejs/adapter-auto": "^4.0.0",
 		"@sveltejs/kit": "^2.16.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"@tailwindcss/vite": "^4.0.0",
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/svelte": "^5.2.4",
+		"@types/bluebird": "^3.5.42",
 		"bits-ui": "^2.14.4",
 		"clsx": "^2.1.1",
 		"eslint": "^9.18.0",
@@ -52,7 +52,9 @@
 	"dependencies": {
 		"@supabase/supabase-js": "^2.76.1",
 		"axios": "^1.7.9",
+		"bluebird": "^3.7.2",
 		"date-fns": "^4.1.0",
+		"lucide-svelte": "^1.0.1",
 		"svelte-french-toast": "^1.2.0",
 		"svelte-progress-bar": "^3.0.2"
 	}

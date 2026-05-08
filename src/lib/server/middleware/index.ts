@@ -35,6 +35,35 @@ export const getMmrByPuuid = async (puuid: string, region = 'ap', platform = 'pc
 	}
 };
 
+export const getMmrHistoryByPuuid = async (puuid: string, region = 'ap', platform = 'PC') => {
+	try {
+		const { data: mmrHistory } = await api.get(
+			`/v2/by-puuid/mmr-history/${region}/${platform}/${puuid}`
+		);
+		return mmrHistory.data;
+	} catch (err) {
+		console.error(err);
+		return null;
+	}
+};
+
+export const getMmrHistoryByNameTag = async (
+	name: string,
+	tag: string,
+	region = 'ap',
+	platform = 'PC'
+) => {
+	try {
+		const { data: mmrHistory } = await api.get(
+			`/v2/mmr-history/${region}/${platform}/${name}/${tag}`
+		);
+		return mmrHistory.data;
+	} catch (err) {
+		console.error(err);
+		return null;
+	}
+};
+
 export const getMmrByNameTag = async (
 	name: string,
 	tag: string,

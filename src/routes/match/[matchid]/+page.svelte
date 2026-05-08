@@ -34,7 +34,10 @@
 	}
 </script>
 
-<div class="bg-[#333] px-5">
+<div
+	class="min-h-screen px-5"
+	style="background-image: url('/background.jpg'); background-size: cover; background-attachment: fixed; background-position: center;"
+>
 	<div class="flex space-x-2">
 		<Badge class="bg-blue-500 text-white dark:bg-blue-600" variant="outline"
 			>Server: {data.match.metadata.cluster}</Badge
