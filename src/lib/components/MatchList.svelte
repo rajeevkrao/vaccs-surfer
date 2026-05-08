@@ -5,7 +5,7 @@
 	import Link from './Link.svelte';
 	import MissingMatchContextMenu from './MissingMatchContextMenu.svelte';
 	import toast from 'svelte-french-toast';
-	import { CircleChevronUp, CircleChevronDown } from 'lucide-svelte';
+	import { CircleChevronUp, CircleChevronDown } from '@lucide/svelte';
 
 	type Teams = {
 		red: number;
