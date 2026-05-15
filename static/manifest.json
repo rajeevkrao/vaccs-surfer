@@ -1,0 +1,21 @@
+{
+	"name": "Vaccs Surfer",
+	"short_name": "VACCS",
+	"description": "Valorant ACCS Match History Displayer",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#0f1923",
+	"theme_color": "#ff4655",
+	"icons": [
+		{
+			"src": "/favicon.ico",
+			"sizes": "48x48",
+			"type": "image/x-icon"
+		},
+		{
+			"src": "/favicon.png",
+			"sizes": "512x512",
+			"type": "image/png"
+		}
+	]
+}
