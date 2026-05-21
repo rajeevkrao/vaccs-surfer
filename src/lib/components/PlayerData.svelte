@@ -5,6 +5,7 @@
 	import RankProtectionShield from './RankProtectionShield.svelte';
 	import { addRecentAccount } from '$lib/db/indexeddb';
 	import PuuidContextMenu from './PuuidContextMenu.svelte';
+	import CompetitiveHistoryModal from './CompetitiveHistoryModal.svelte';
 
 	type $$Props = {
 		data: {
@@ -14,6 +15,8 @@
 	};
 
 	let { data }: $$Props = $props();
+
+	let isMmrModalOpen = $state(false);
 
 	$effect(() => {
 		addRecentAccount({
@@ -26,7 +29,7 @@
 
 <div class="flex flex-wrap justify-between gap-2">
 	<Badge
-		class="cursor-pointer bg-blue-500 text-2xl text-white dark:bg-blue-600"
+		class="cursor-pointer bg-blue-500 text-2xl text-white dark:bg-blue-600 hover:bg-blue-600 transition-colors"
 		variant="outline"
 		onclick={() => {
 			copyToClipboard(`${data.accountData.name}#${data.accountData.tag}`);
@@ -48,7 +51,7 @@
 	>
 		<Badge
 			title={data.accountData.puuid}
-			class="block w-60 cursor-pointer truncate overflow-hidden bg-blue-500 text-left text-2xl text-white dark:bg-blue-600"
+			class="block w-60 cursor-pointer truncate overflow-hidden bg-blue-500 text-left text-2xl text-white dark:bg-blue-600 hover:bg-blue-600 transition-colors"
 			variant="outline"
 			onclick={() => {
 				copyToClipboard(data.accountData.puuid);
@@ -60,61 +63,40 @@
 	>
 
 	{#if data.mmrData?.current}
-		<Badge class="bg-blue-500 text-2xl text-white dark:bg-blue-600" variant="outline"
-			><span>Current:</span>
-
+		<Badge 
+			class="cursor-pointer bg-blue-500 text-2xl text-white dark:bg-blue-600 hover:bg-blue-600 transition-colors flex items-center gap-1.5" 
+			variant="outline"
+			onclick={() => isMmrModalOpen = true}
+			title="Click to view full Competitive History"
+		>
+			<span>Current:</span>
 			<img
 				title={data.mmrData.current.tier.name}
 				class="h-8"
 				alt={data.mmrData.current.tier.id}
 				src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${data.mmrData.current.tier.id}/smallicon.png`}
-			/>{data.mmrData.current.rr.toString().padStart(2, '0')}
-			<RankProtectionShield rankData={data.mmrData.current} /></Badge
-		>
+			/>
+			{data.mmrData.current.rr.toString().padStart(2, '0')}
+			<RankProtectionShield rankData={data.mmrData.current} />
+		</Badge>
 	{/if}
 
 	{#if data.mmrData?.peak}
-		<Badge class="bg-blue-500 text-2xl text-white dark:bg-blue-600" variant="outline"
-			><span>Peak[{data.mmrData.peak.season.short}]:</span>
-
+		<Badge 
+			class="cursor-pointer bg-blue-500 text-2xl text-white dark:bg-blue-600 hover:bg-blue-600 transition-colors flex items-center gap-1.5" 
+			variant="outline"
+			onclick={() => isMmrModalOpen = true}
+			title="Click to view full Competitive History"
+		>
+			<span>Peak[{data.mmrData.peak.season.short}]:</span>
 			<img
 				title={data.mmrData.peak.tier.name}
 				class="h-8"
 				alt={data.mmrData.peak.tier.id}
 				src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${data.mmrData.peak.tier.id}/smallicon.png`}
-			/>{data.mmrData.peak.rr.toString().padStart(2, '0')}</Badge
-		>
+			/>
+		</Badge>
 	{/if}
 </div>
 
-<!-- <div class="flex justify-around text-white">
-	<Card.Root class="m-2">
-		<Card.Header>
-			<Card.Title class="text-center">Current</Card.Title>
-		</Card.Header>
-		<Card.Content class="flex items-center">
-			<img
-				title={data.mmrData.current.tier.name}
-				class="h-20"
-				alt={data.mmrData.current.tier.id}
-				src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${data.mmrData.current.tier.id}/smallicon.png`}
-			/>
-			{data.mmrData.current.rr}
-		</Card.Content>
-	</Card.Root>
-
-	<Card.Root class="m-2">
-		<Card.Header>
-			<Card.Title class="text-center">Peak - {data.mmrData.peak.season.short}</Card.Title>
-		</Card.Header>
-		<Card.Content class="flex items-center">
-			<img
-				title={data.mmrData.peak.tier.name}
-				class="h-20"
-				alt={data.mmrData.peak.tier.id}
-				src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${data.mmrData.peak.tier.id}/smallicon.png`}
-			/>
-			{data.mmrData.peak.rr}
-		</Card.Content>
-	</Card.Root>
-</div> -->
+<CompetitiveHistoryModal bind:isOpen={isMmrModalOpen} {data} />
