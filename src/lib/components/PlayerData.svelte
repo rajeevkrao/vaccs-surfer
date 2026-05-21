@@ -17,6 +17,7 @@
 	let { data }: $$Props = $props();
 
 	let isMmrModalOpen = $state(false);
+	let initialSeasonShort = $state('');
 
 	$effect(() => {
 		addRecentAccount({
@@ -66,7 +67,10 @@
 		<Badge 
 			class="cursor-pointer bg-blue-500 text-2xl text-white dark:bg-blue-600 hover:bg-blue-600 transition-colors flex items-center gap-1.5" 
 			variant="outline"
-			onclick={() => isMmrModalOpen = true}
+			onclick={() => {
+				initialSeasonShort = '';
+				isMmrModalOpen = true;
+			}}
 			title="Click to view full Competitive History"
 		>
 			<span>Current:</span>
@@ -85,7 +89,10 @@
 		<Badge 
 			class="cursor-pointer bg-blue-500 text-2xl text-white dark:bg-blue-600 hover:bg-blue-600 transition-colors flex items-center gap-1.5" 
 			variant="outline"
-			onclick={() => isMmrModalOpen = true}
+			onclick={() => {
+				initialSeasonShort = data.mmrData.peak.season.short;
+				isMmrModalOpen = true;
+			}}
 			title="Click to view full Competitive History"
 		>
 			<span>Peak[{data.mmrData.peak.season.short}]:</span>
@@ -99,4 +106,4 @@
 	{/if}
 </div>
 
-<CompetitiveHistoryModal bind:isOpen={isMmrModalOpen} {data} />
+<CompetitiveHistoryModal bind:isOpen={isMmrModalOpen} {data} bind:initialSeasonShort />

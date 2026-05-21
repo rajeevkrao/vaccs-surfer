@@ -9,22 +9,42 @@
 			accountData: any;
 			mmrData: any;
 		};
+		initialSeasonShort?: string;
 	};
 
-	let { isOpen = $bindable(false), data }: $$Props = $props();
+	let { isOpen = $bindable(false), data, initialSeasonShort = $bindable('') }: $$Props = $props();
 
 	let selectedSeasonIndex = $state(0);
 	let hoverPointIndex = $state<number | null>(null);
-	let hasSetInitialSeason = $state(false);
 	let hoverCoords = $state<{ x: number; y: number } | null>(null);
 
 	let seasonalData = $derived((data.mmrData?.seasonal || []) as any[]);
 	let selectedSeason = $derived(seasonalData[selectedSeasonIndex]);
 
+	function selectPeakSeason() {
+		const peakSeasonShort = data.mmrData?.peak?.season?.short;
+		if (peakSeasonShort) {
+			const idx = seasonalData.findIndex(
+				(s) => s.season?.short?.toLowerCase() === peakSeasonShort.toLowerCase()
+			);
+			if (idx !== -1) {
+				selectedSeasonIndex = idx;
+			}
+		}
+	}
+
 	$effect(() => {
-		if (seasonalData.length > 0 && !hasSetInitialSeason) {
+		if (isOpen && seasonalData.length > 0) {
+			if (initialSeasonShort) {
+				const idx = seasonalData.findIndex(
+					(s) => s.season?.short?.toLowerCase() === initialSeasonShort.toLowerCase()
+				);
+				if (idx !== -1) {
+					selectedSeasonIndex = idx;
+					return;
+				}
+			}
 			selectedSeasonIndex = seasonalData.length - 1;
-			hasSetInitialSeason = true;
 		}
 	});
 
@@ -210,10 +230,12 @@
 					class="mr-2 flex flex-1 flex-wrap items-center justify-start gap-3 md:justify-end md:gap-4"
 				>
 					<!-- Peak Rank Badge -->
-					<div
-						class="flex items-center gap-2 rounded-lg border border-slate-700/30 bg-slate-800/40 px-2.5 py-1"
-					>
-						{#if data.mmrData?.peak}
+					{#if data.mmrData?.peak}
+						<button
+							class="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700/30 bg-slate-800/40 px-2.5 py-1 text-left transition-all hover:bg-slate-700/60 hover:border-slate-600/50 hover:text-white active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+							onclick={selectPeakSeason}
+							title="Click to view Peak Season ({data.mmrData.peak.season.short.toUpperCase()}) details"
+						>
 							<img
 								class="h-6 w-6 object-contain"
 								alt={data.mmrData.peak.tier.name}
@@ -226,9 +248,6 @@
 								>
 								<span
 									class="max-w-[160px] truncate text-xs leading-tight font-semibold text-white"
-									title="{data.mmrData.peak.tier.name} (Reached in {data.mmrData.peak.season?.short
-										? formatSeasonName(data.mmrData.peak.season.short)
-										: ''})"
 								>
 									{data.mmrData.peak.tier.name}
 									{#if data.mmrData.peak.season?.short}
@@ -238,11 +257,15 @@
 									{/if}
 								</span>
 							</div>
-						{:else}
+						</button>
+					{:else}
+						<div
+							class="flex items-center gap-2 rounded-lg border border-slate-700/30 bg-slate-800/40 px-2.5 py-1"
+						>
 							<Award class="h-4 w-4 text-slate-500" />
 							<span class="text-xs font-semibold text-slate-400">Peak: N/A</span>
-						{/if}
-					</div>
+						</div>
+					{/if}
 
 					<!-- Wins Badge -->
 					<div
