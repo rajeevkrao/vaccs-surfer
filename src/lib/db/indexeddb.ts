@@ -49,6 +49,119 @@ export async function addRecentAccount(account: {
 	});
 }
 
+export interface IndexedDBChangeEvent {
+	operation: 'add' | 'put' | 'delete' | 'clear';
+	storeName: string;
+	key?: any;
+	value?: any;
+	timestamp: number;
+}
+
+if (typeof window !== 'undefined' && typeof IDBObjectStore !== 'undefined') {
+	const originalAdd = IDBObjectStore.prototype.add;
+	const originalPut = IDBObjectStore.prototype.put;
+	const originalDelete = IDBObjectStore.prototype.delete;
+	const originalClear = IDBObjectStore.prototype.clear;
+
+	const broadcastChange = (event: IndexedDBChangeEvent) => {
+		try {
+			const channel = new BroadcastChannel('indexeddb-update');
+			channel.postMessage(event);
+			channel.close();
+		} catch (e) {
+			console.error('Failed to broadcast IndexedDB change:', e);
+		}
+		if (typeof window !== 'undefined') {
+			window.dispatchEvent(new CustomEvent('indexeddb-change-local', { detail: event }));
+		}
+	};
+
+	IDBObjectStore.prototype.add = function (value, key) {
+		const request = originalAdd.apply(this, arguments as any);
+		const storeName = this.name;
+		request.addEventListener('success', () => {
+			const resolvedKey = key !== undefined ? key : request.result;
+			broadcastChange({
+				operation: 'add',
+				storeName,
+				key: resolvedKey,
+				value,
+				timestamp: Date.now()
+			});
+		});
+		return request;
+	};
+
+	IDBObjectStore.prototype.put = function (value, key) {
+		const request = originalPut.apply(this, arguments as any);
+		const storeName = this.name;
+		request.addEventListener('success', () => {
+			const resolvedKey = key !== undefined ? key : request.result;
+			broadcastChange({
+				operation: 'put',
+				storeName,
+				key: resolvedKey,
+				value,
+				timestamp: Date.now()
+			});
+		});
+		return request;
+	};
+
+	IDBObjectStore.prototype.delete = function (key) {
+		const request = originalDelete.apply(this, arguments as any);
+		const storeName = this.name;
+		request.addEventListener('success', () => {
+			broadcastChange({
+				operation: 'delete',
+				storeName,
+				key,
+				timestamp: Date.now()
+			});
+		});
+		return request;
+	};
+
+	IDBObjectStore.prototype.clear = function () {
+		const request = originalClear.apply(this, arguments as any);
+		const storeName = this.name;
+		request.addEventListener('success', () => {
+			broadcastChange({
+				operation: 'clear',
+				storeName,
+				timestamp: Date.now()
+			});
+		});
+		return request;
+	};
+}
+
+export function onIndexedDBChange(callback: (event: IndexedDBChangeEvent) => void): () => void {
+	if (typeof window === 'undefined') {
+		return () => {};
+	}
+
+	const channel = new BroadcastChannel('indexeddb-update');
+
+	const handleMessage = (event: MessageEvent) => {
+		callback(event.data);
+	};
+
+	const handleLocal = (event: Event) => {
+		const customEvent = event as CustomEvent<IndexedDBChangeEvent>;
+		callback(customEvent.detail);
+	};
+
+	channel.addEventListener('message', handleMessage);
+	window.addEventListener('indexeddb-change-local', handleLocal);
+
+	return () => {
+		channel.removeEventListener('message', handleMessage);
+		channel.close();
+		window.removeEventListener('indexeddb-change-local', handleLocal);
+	};
+}
+
 export async function getRecentAccounts(limit = 500): Promise<RecentAccount[]> {
 	const db = await openDB();
 	return new Promise((resolve, reject) => {

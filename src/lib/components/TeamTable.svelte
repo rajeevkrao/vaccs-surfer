@@ -3,6 +3,10 @@
 	import Link from '$lib/components/Link.svelte';
 	import Warning from '$lib/components/Warning.svelte';
 
+	const acsTooltip = `DAMAGE: 1 point each\nKILLS based on enemies alive: 150 / 130 / 110 / 90 / 70\nMULTIKILLS: +50 per additional kill\nNON-DAMAGING ASSISTS: 25`;
+	// Don't remove below comment this text will be added after a feature
+	// \nROUND SCORES: viewed in the timeline
+
 	type $$Props = {
 		match: any;
 		puuid: string | null;
@@ -55,18 +59,65 @@
 		return team;
 	});
 
-	let sortMethod = $state<'acs'>('acs');
+	let groupByTeam = $state(false);
+	let sortColumn = $state<'acs' | 'kda' | 'econ' | 'fb' | 'plants' | 'defuses'>('acs');
+	let sortDirection = $state<'asc' | 'desc'>('desc');
 
-	let allPlayers = $state(data.match.players.all_players);
+	function toggleGroupByTeam() {
+		groupByTeam = !groupByTeam;
+	}
 
-	$effect(() => {
-		allPlayers = allPlayers.sort((a: any, b: any) => {
-			if (sortMethod === 'acs') {
-				return b.stats.score - a.stats.score;
+	function sortBy(col: typeof sortColumn) {
+		if (sortColumn === col) {
+			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+		} else {
+			sortColumn = col;
+			sortDirection = 'desc';
+		}
+	}
+
+	function getColumnValue(player: any, col: typeof sortColumn) {
+		switch (col) {
+			case 'acs':
+				return player.stats.score;
+			case 'kda':
+				return player.stats.kills;
+			case 'econ':
+				return calculateEconRating(player);
+			case 'fb':
+				return calculateFirstBloods(player, data.match);
+			case 'plants':
+				return calculatePlants(player, data.match);
+			case 'defuses':
+				return calculateDefuses(player, data.match);
+			default:
+				return 0;
+		}
+	}
+
+	let sortedPlayers = $derived.by(() => {
+		const playersCopy = [...data.match.players.all_players];
+		
+		playersCopy.sort((a: any, b: any) => {
+			if (groupByTeam) {
+				const teamA = a.team.toLowerCase();
+				const teamB = b.team.toLowerCase();
+				if (teamA !== teamB) {
+					return teamA === playerTeam ? -1 : 1;
+				}
 			}
-			// Add more sorting methods if needed
-			return 0;
+
+			const valA = getColumnValue(a, sortColumn);
+			const valB = getColumnValue(b, sortColumn);
+
+			if (sortDirection === 'asc') {
+				return valA - valB;
+			} else {
+				return valB - valA;
+			}
 		});
+
+		return playersCopy;
 	});
 
 	function getPlayerColor(player: any) {
@@ -84,7 +135,6 @@
 
 		for (const kill of match.kills) {
 			if (kill.killer_puuid === player.puuid && !countedRounds.has(kill.round)) {
-				// Check if this player had the first kill in this round
 				const firstKillInRound = match.kills.find((k: any) => k.round === kill.round);
 				if (firstKillInRound?.killer_puuid === player.puuid) {
 					count++;
@@ -125,17 +175,35 @@
 	<table class="w-full text-center text-2xl">
 		<thead>
 			<tr>
-				<th class="border-r border-gray-400 px-4">Player</th>
-				<th class="border-r border-l border-gray-400 px-4">ACS</th>
-				<th class="border-r border-l border-gray-400 px-4">K/D/A</th>
-				<th class="border-r border-l border-gray-400 px-4">Econ Rating</th>
-				<th class="border-r border-l border-gray-400 px-4">First Bloods</th>
-				<th class="border-r border-l border-gray-400 px-4">Plants</th>
-				<th class="border-l border-gray-400 px-4">Defuses</th>
+				<th class="border-r border-gray-400 px-4 cursor-pointer select-none text-nowrap hover:text-gray-300" onclick={toggleGroupByTeam}>
+					{groupByTeam ? 'Group by Team' : 'Individually Sorted'}
+				</th>
+				<th 
+					class="border-r border-l border-gray-400 px-4 cursor-pointer select-none text-nowrap hover:text-gray-300" 
+					onclick={() => sortBy('acs')}
+					title={acsTooltip}
+				>
+					ACS {sortColumn === 'acs' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
+				</th>
+				<th class="border-r border-l border-gray-400 px-4 cursor-pointer select-none text-nowrap hover:text-gray-300" onclick={() => sortBy('kda')}>
+					K/D/A {sortColumn === 'kda' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
+				</th>
+				<th class="border-r border-l border-gray-400 px-4 cursor-pointer select-none text-nowrap hover:text-gray-300" onclick={() => sortBy('econ')}>
+					Econ Rating {sortColumn === 'econ' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
+				</th>
+				<th class="border-r border-l border-gray-400 px-4 cursor-pointer select-none text-nowrap hover:text-gray-300" onclick={() => sortBy('fb')}>
+					First Bloods {sortColumn === 'fb' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
+				</th>
+				<th class="border-r border-l border-gray-400 px-4 cursor-pointer select-none text-nowrap hover:text-gray-300" onclick={() => sortBy('plants')}>
+					Plants {sortColumn === 'plants' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
+				</th>
+				<th class="border-l border-gray-400 px-4 cursor-pointer select-none text-nowrap hover:text-gray-300" onclick={() => sortBy('defuses')}>
+					Defuses {sortColumn === 'defuses' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
+				</th>
 			</tr>
 		</thead>
 		<tbody>
-			{#each allPlayers as player}
+			{#each sortedPlayers as player}
 				<tr style="background-color: #{getPlayerColor(player)}">
 					<td class="flex items-center text-left"
 						><img

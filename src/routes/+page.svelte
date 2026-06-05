@@ -10,7 +10,7 @@
 	import type { InputType } from '$lib/utils.js';
 	import { debounce } from '$lib/utils.js';
 	import Badge from '$lib/components/ui/badge/badge.svelte';
-	import { getRecentAccounts, searchRecentAccounts, type RecentAccount } from '$lib/db/indexeddb';
+	import { getRecentAccounts, searchRecentAccounts, onIndexedDBChange, type RecentAccount } from '$lib/db/indexeddb';
 
 	let name: string;
 	let tag: string;
@@ -35,6 +35,14 @@
 
 	onMount(() => {
 		loadRecentAccounts();
+
+		const unsubscribe = onIndexedDBChange((event) => {
+			if (event.storeName === 'recentAccounts') {
+				loadRecentAccounts();
+			}
+		});
+
+		return unsubscribe;
 	});
 
 	const onSearch = async (query: string) => {
@@ -202,25 +210,27 @@
 		<Sheet.Header>
 			<Sheet.Title class="text-2xl font-bold text-white">Recent Accounts</Sheet.Title>
 		</Sheet.Header>
-		<div class="mt-6 h-full space-y-4 px-2">
+		<div class="mt-6 flex flex-col flex-1 min-h-0 space-y-4 px-2">
 			<Input
-				class="border-gray-700 bg-black/40 text-white"
+				class="border-gray-700 bg-black/40 text-white shrink-0"
 				type="text"
 				placeholder="Search recents..."
 				bind:value={nameTagSearch}
 				oninput={(e: any) => debouncedSearch(e.target.value)}
 			/>
-			<div class="flex flex-wrap gap-2">
-				{#each recentAccounts as account}
-					<Badge
-						onclick={() => {
-							goto(`/matchesv2/${account.puuid}`);
-						}}
-						class="cursor-pointer border-none bg-[#20bd83]/20 px-3 py-1 text-lg text-[#20bd83] transition-colors hover:bg-[#20bd83] hover:text-white"
-					>
-						{account.name}#{account.tag}
-					</Badge>
-				{/each}
+			<div class="flex-1 overflow-y-auto custom-scrollbar pb-6">
+				<div class="flex flex-wrap gap-2">
+					{#each recentAccounts as account}
+						<Badge
+							onclick={() => {
+								goto(`/matchesv2/${account.puuid}`);
+							}}
+							class="cursor-pointer border-none bg-[#20bd83]/20 px-3 py-1 text-lg text-[#20bd83] transition-colors hover:bg-[#20bd83] hover:text-white"
+						>
+							{account.name}#{account.tag}
+						</Badge>
+					{/each}
+				</div>
 			</div>
 		</div>
 	</Sheet.Content>

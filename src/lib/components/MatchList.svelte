@@ -6,6 +6,7 @@
 	import MissingMatchContextMenu from './MissingMatchContextMenu.svelte';
 	import toast from 'svelte-french-toast';
 	import { CircleChevronUp, CircleChevronDown } from '@lucide/svelte';
+	import FilterSelect from './FilterSelect.svelte';
 
 	type Teams = {
 		red: number;
@@ -25,8 +26,32 @@
 
 	let mmrHistory = $derived(data.mmrHistoryData.history);
 
+	let selectedMap = $state('');
+	let selectedMode = $state('');
+
+	let nonPartialMatches = $derived(data.matchesData.filter((m: any) => !m.meta.partial));
+
+	let uniqueMaps = $derived(
+		[...new Set(nonPartialMatches.map((m: any) => m.meta.map?.name).filter(Boolean))].sort()
+	);
+
+	let uniqueModes = $derived(
+		[...new Set(nonPartialMatches.map((m: any) => m.meta.mode).filter(Boolean))].sort()
+	);
+
+	let filteredMatches = $derived.by(() => {
+		let matches = data.matchesData.concat(...missingMatches);
+		if (selectedMap) {
+			matches = matches.filter((m: any) => m.meta.map?.name === selectedMap);
+		}
+		if (selectedMode) {
+			matches = matches.filter((m: any) => m.meta.mode === selectedMode);
+		}
+		return matches;
+	});
+
 	let groupByDate = $derived.by<Record<string, any[]>>(() => {
-		const matchesData = data.matchesData.concat(...missingMatches).sort((a, b) => {
+		const matchesData = filteredMatches.sort((a, b) => {
 			return new Date(b.meta.started_at).getTime() - new Date(a.meta.started_at).getTime();
 		});
 		const today = format(new Date(), 'dd-MMM-yyyy');
@@ -134,6 +159,10 @@
 	{#if data.matchesData.length === 0}
 		<p>No matches found.</p>
 	{:else}
+		<div class="mx-auto mb-3 flex max-w-3xl flex-wrap items-center justify-center gap-3">
+			<FilterSelect options={uniqueMaps} bind:value={selectedMap} paramName="map" placeholder="All Maps" />
+			<FilterSelect options={uniqueModes} bind:value={selectedMode} paramName="mode" placeholder="All Modes" />
+		</div>
 		{#each Object.entries(groupByDate) as [date, matches]}
 			<div class="mx-auto my-2 w-fit rounded-sm bg-blue-500 px-2 py-1 text-lg text-white">
 				{date}
