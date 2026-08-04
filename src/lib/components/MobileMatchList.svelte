@@ -1,0 +1,287 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import axios from 'axios';
+	import { format, subDays } from 'date-fns';
+	import Link from './Link.svelte';
+	import MissingMatchContextMenu from './MissingMatchContextMenu.svelte';
+	import toast from 'svelte-french-toast';
+	import { CircleChevronUp, CircleChevronDown } from '@lucide/svelte';
+	import FilterSelect from './FilterSelect.svelte';
+
+	type Teams = {
+		red: number;
+		blue: number;
+	};
+
+	type $$Props = {
+		matchesData: any[];
+		gamemodesData: any[];
+		accountData: any;
+		mmrHistoryData: any;
+	};
+
+	let { data }: { data: $$Props } = $props();
+
+	let missingMatches = $state([]);
+
+	let mmrHistory = $derived(data.mmrHistoryData.history);
+
+	let selectedMap = $state('');
+	let selectedMode = $state('');
+
+	let nonPartialMatches = $derived(data.matchesData.filter((m: any) => !m.meta.partial));
+
+	let uniqueMaps = $derived(
+		[...new Set(nonPartialMatches.map((m: any) => m.meta.map?.name).filter(Boolean))].sort()
+	);
+
+	let uniqueModes = $derived(
+		[...new Set(nonPartialMatches.map((m: any) => m.meta.mode).filter(Boolean))].sort()
+	);
+
+	let filteredMatches = $derived.by(() => {
+		let matches = data.matchesData.concat(...missingMatches);
+		if (selectedMap) {
+			matches = matches.filter((m: any) => m.meta.map?.name === selectedMap);
+		}
+		if (selectedMode) {
+			matches = matches.filter((m: any) => m.meta.mode === selectedMode);
+		}
+		return matches;
+	});
+
+	let groupByDate = $derived.by<Record<string, any[]>>(() => {
+		const matchesData = filteredMatches.sort((a, b) => {
+			return new Date(b.meta.started_at).getTime() - new Date(a.meta.started_at).getTime();
+		});
+		const today = format(new Date(), 'dd-MMM-yyyy');
+		const yesterday = format(subDays(new Date(), 1), 'dd-MMM-yyyy');
+		return matchesData.reduce((acc, item) => {
+			const d = format(new Date(item.meta.started_at), 'dd-MMM-yyyy');
+			const key = d === today ? 'Today' : d === yesterday ? 'Yesterday' : d;
+			(acc[key] ??= []).push(item);
+			return acc;
+		}, {});
+	});
+
+	onMount(async () => {
+		const {
+			data: { data: currentMatchList }
+		} = await axios.get(`/api/getCurrentMatchList?puuid=${data.accountData.puuid}`);
+		missingMatches = currentMatchList
+			.map((match: any) => ({
+				meta: {
+					id: match.MatchID,
+					mode: match.QueueID,
+					started_at: new Date(match.GameStartTime).toISOString(),
+					partial: true
+				},
+				stats: {
+					puuid: data.accountData.puuid
+				}
+			}))
+			.filter(
+				(match: any) => data.matchesData.findIndex((m) => m.meta.id === match.meta.id) === -1
+			);
+	});
+
+	async function loadAllMissingMatches(mode: 'smart' | 'burst' = 'burst') {
+		const url = mode === 'smart' ? '/api/loadAllMissingMatches/v2' : '/api/loadAllMissingMatches';
+		toast.promise(axios.get(`${url}?puuid=${data.accountData.puuid}`), {
+			loading: `Loading all missing matches (${mode})...`,
+			success: () => {
+				window.location.reload();
+				return `Successfully loaded all missing matches (${mode})`;
+			},
+			error: (err) => err?.response?.data || 'Failed to load missing matches'
+		});
+	}
+
+	function getWinStatusFromMatch(match: any) {
+		if (match.meta.mode === 'Deathmatch') {
+			if (match.stats.kills === 40) {
+				return `VICTORY`;
+			} else {
+				return `DEFEAT`;
+			}
+		}
+		const teams = match.teams as Teams;
+		const inputTeam = match.stats.team as 'Red' | 'Blue';
+		const team = inputTeam.toLowerCase() as keyof Teams;
+		const otherTeam = team === 'red' ? 'blue' : 'red';
+		if (teams[team] > teams[otherTeam]) {
+			return `VICTORY`;
+		} else if (teams[team] < teams[otherTeam]) {
+			return `DEFEAT`;
+		}
+		return `DRAW`;
+	}
+
+	function getScoreString(teams: Teams, inputTeam: 'Red' | 'Blue') {
+		const team = inputTeam.toLowerCase() as keyof Teams;
+		const otherTeam = team === 'red' ? 'blue' : 'red';
+		return `${teams[team]} - ${teams[otherTeam]}`;
+	}
+
+	function redirectToMatch(match: any) {
+		const matchId = match.meta.id;
+		const puuid = match.stats.puuid;
+		return `/match/${matchId}?puuid=${puuid}`;
+	}
+
+	function getModeDisplayIcon(gamemode: string) {
+		const gamemodeName = gamemode === 'Unrated' ? 'Standard' : gamemode;
+		const url = data.gamemodesData?.find(
+			(mode: any) => mode?.displayName === gamemodeName
+		)?.displayIcon;
+		return url;
+	}
+
+	function getStatusColorFromText(text: string) {
+		switch (text) {
+			case 'VICTORY':
+				return '#20bd83';
+			case 'DEFEAT':
+				return '#c53a47';
+			default:
+				return '#6c757d'; // Default color for DRAW or unknown status
+		}
+	}
+
+	function getMmrHistoryForMatch(matchId: string) {
+		return mmrHistory?.find((item: any) => item.match_id === matchId);
+	}
+</script>
+
+<div class="mt-3 px-2">
+	{#if data.matchesData.length === 0}
+		<p class="text-center text-white">No matches found.</p>
+	{:else}
+		<div class="mx-auto mb-3 flex w-full gap-2">
+			<div class="flex-1 min-w-0">
+				<FilterSelect class="w-full" options={uniqueMaps} bind:value={selectedMap} paramName="map" placeholder="All Maps" />
+			</div>
+			<div class="flex-1 min-w-0">
+				<FilterSelect class="w-full" options={uniqueModes} bind:value={selectedMode} paramName="mode" placeholder="All Modes" />
+			</div>
+		</div>
+		{#each Object.entries(groupByDate) as [date, matches]}
+			<div class="my-2 w-full rounded-sm bg-blue-500 px-2 py-1 text-center text-sm font-semibold text-white">
+				{date}
+			</div>
+			{#each matches as match}
+				{#if match.meta.partial}
+					<MissingMatchContextMenu
+						onLoadAllSmart={() => loadAllMissingMatches('smart')}
+						onLoadAllBurst={() => loadAllMissingMatches('burst')}
+					>
+						<Link href={redirectToMatch(match)}>
+							<div
+								title={format(new Date(match.meta.started_at), 'dd-MMM-yyyy hh:mm:ss aa')}
+								class="my-1 flex h-16 items-center justify-center overflow-hidden rounded-md px-2 text-sm text-white"
+								style="background-color: #6c757d"
+							>
+								Match not loaded - Click to Load
+							</div>
+						</Link>
+					</MissingMatchContextMenu>
+				{:else}
+					<Link href={redirectToMatch(match)}>
+						<div
+							title={format(new Date(match.meta.started_at), 'dd-MMM-yyyy hh:mm:ss aa')}
+							class="relative my-2 flex flex-col overflow-hidden rounded-md border-l-4 text-white p-2 shadow-lg"
+							style="background: linear-gradient(135deg, {getStatusColorFromText(
+								getWinStatusFromMatch(match)
+							)}33 0%, #111 100%); border-color: {getStatusColorFromText(
+								getWinStatusFromMatch(match)
+							)}"
+						>
+							<!-- Background Map Image for Mobile -->
+							<img
+								class="absolute top-0 right-0 h-full w-2/3 object-cover opacity-20 [mask-image:linear-gradient(to_right,transparent_0%,black_100%)] pointer-events-none"
+								alt={match.meta.map.name}
+								src={`https://media.valorant-api.com/maps/${match.meta.map.id}/listviewicon.png`}
+							/>
+
+							<div class="relative z-10 flex items-center justify-between">
+								<!-- Left: Agent and Mode -->
+								<div class="flex items-center gap-2">
+									<img
+										class="h-12 w-12 rounded-full border border-gray-600 bg-gray-800 object-cover"
+										alt={match.stats.character.name}
+										src={`https://media.valorant-api.com/agents/${match.stats.character.id}/displayicon.png`}
+									/>
+									<div class="flex flex-col">
+										<div class="flex items-center gap-1">
+											{#if match.meta.mode === 'Competitive'}
+												<img
+													class="h-4"
+													alt={match.stats.tier}
+													src={`https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${match.stats.tier}/smallicon.png`}
+												/>
+											{:else}
+												<img
+													title={match.meta.mode}
+													class="h-4"
+													alt={match.meta.mode}
+													src={getModeDisplayIcon(match.meta.mode)}
+												/>
+											{/if}
+											<span class="text-xs font-semibold text-gray-300">{match.meta.mode}</span>
+										</div>
+										<span class="text-sm font-bold">{match.meta.map.name}</span>
+									</div>
+								</div>
+
+								<!-- Right: Score & Status -->
+								<div class="flex flex-col items-end text-right">
+									<span
+										class="text-sm font-bold"
+										style="color: {getStatusColorFromText(getWinStatusFromMatch(match))}"
+									>
+										{getWinStatusFromMatch(match)}
+									</span>
+									<div class="text-sm font-medium opacity-90">
+										{#if match.meta.mode === 'Deathmatch'}
+											{match.stats.kills} Kills
+										{:else}
+											{@const [teamScore, otherScore] = getScoreString(
+												match.teams,
+												match.stats.team
+											).split(' - ')}
+											<span style="color: {getStatusColorFromText(getWinStatusFromMatch(match))}">{teamScore}</span>
+											- {otherScore}
+										{/if}
+									</div>
+								</div>
+							</div>
+
+							<!-- Bottom Row: KDA and MMR Change -->
+							<div class="relative z-10 mt-2 flex items-center justify-between border-t border-gray-700/50 pt-2">
+								<div class="text-xs text-gray-300">
+									KDA: <span class="font-semibold text-white">{match.stats.kills}/{match.stats.deaths}/{match.stats.assists}</span>
+									<span class="mx-1 opacity-50">|</span>
+									Score: <span class="font-semibold text-white">{match.stats.score}</span>
+								</div>
+
+								{#if match.meta.mode === 'Competitive'}
+									{@const history = getMmrHistoryForMatch(match.meta.id)}
+									{#if history}
+										<div class="flex items-center gap-1 text-xs font-bold" style="color: {history.last_change >= 0 ? '#20bd83' : '#c53a47'}">
+											{#if match.stats.tier < history.tier.id}
+												<CircleChevronUp size={12} strokeWidth={3} />
+											{:else if match.stats.tier > history.tier.id}
+												<CircleChevronDown size={12} strokeWidth={3} />
+											{/if}
+											{history.last_change > 0 ? '+' : ''}{history.last_change}
+										</div>
+									{/if}
+								{/if}
+							</div>
+						</div>
+					</Link>
+				{/if}
+			{/each}
+		{/each}
+	{/if}
+</div>

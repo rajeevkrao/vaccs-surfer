@@ -3,6 +3,7 @@
 
 	import Parties from '$lib/components/Parties.svelte';
 	import TeamTable from '$lib/components/TeamTable.svelte';
+	import MobileTeamTable from '$lib/components/MobileTeamTable.svelte';
 	import type { PageProps } from './$types';
 	import { copyToClipboard } from '$lib/utils';
 	import toast from 'svelte-french-toast';
@@ -35,10 +36,10 @@
 </script>
 
 <div
-	class="min-h-screen px-5"
+	class="min-h-screen px-2 md:px-5"
 	style="background-image: url('/background.jpg'); background-size: cover; background-attachment: fixed; background-position: center;"
 >
-	<div class="flex space-x-2">
+	<div class="flex flex-wrap gap-2 justify-center md:justify-start">
 		<Badge class="bg-blue-500 text-white dark:bg-blue-600" variant="outline"
 			>Server: {data.match.metadata.cluster}</Badge
 		>
@@ -64,7 +65,7 @@
 			)}</Badge
 		>
 		<Badge
-			class="block w-40 cursor-pointer truncate overflow-hidden bg-blue-500 text-white dark:bg-blue-600 "
+			class="cursor-pointer truncate overflow-hidden bg-blue-500 text-white dark:bg-blue-600 w-full sm:w-auto text-center"
 			variant="outline"
 			onclick={() => {
 				copyToClipboard(data.match.metadata.matchid);
@@ -72,7 +73,14 @@
 			}}>Match ID: {data.match.metadata.matchid}</Badge
 		>
 	</div>
-	<h1 class="text-center text-5xl text-white">{getWinStatusForPlayer(data.match, data.puuid)}</h1>
-	<TeamTable match={data.match} puuid={data.puuid} />
+	<h1 class="text-center text-4xl md:text-5xl text-white my-4">{getWinStatusForPlayer(data.match, data.puuid)}</h1>
+	
+	<div class="hidden md:block">
+		<TeamTable match={data.match} puuid={data.puuid} />
+	</div>
+	<div class="block md:hidden">
+		<MobileTeamTable match={data.match} puuid={data.puuid} />
+	</div>
+	
 	<Parties match={data.match} />
 </div>

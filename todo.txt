@@ -1,0 +1,1 @@
+add flags on to show notification(toast) if an account is smurfing, deranking, etc

@@ -9,12 +9,14 @@
 		options = [],
 		value = $bindable(''),
 		paramName = '',
-		placeholder = 'All'
+		placeholder = 'All',
+		class: className = 'w-44'
 	}: {
 		options: string[];
 		value: string;
 		paramName?: string;
 		placeholder?: string;
+		class?: string;
 	} = $props();
 
 	let isOpen = $state(false);
@@ -134,7 +136,7 @@
 
 <svelte:window onclick={handleOutsideClick} />
 
-<div class="relative w-44" bind:this={containerRef}>
+<div class="relative {className}" bind:this={containerRef}>
 	<div
 		bind:this={triggerRef}
 		role="button"
