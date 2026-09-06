@@ -7,7 +7,12 @@ declare global {
 			retrySeconds?: number;
 		}
 		// interface Error {}
-		// interface Locals {}
+		interface Locals {
+			/** UUID assigned to this browser session via cookie */
+			sessionId: string;
+			/** Total number of page visits recorded in Redis for this session */
+			sessionVisits: number;
+		}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}
