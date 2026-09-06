@@ -9,7 +9,8 @@ export function getRedisClient(): Redis {
 		_client = new Redis(REDIS_URL, {
 			// Reconnect automatically with exponential back-off
 			retryStrategy: (times) => Math.min(times * 100, 3000),
-			lazyConnect: false
+			lazyConnect: false,
+			family: 0
 		});
 
 		_client.on('error', (err) => {
