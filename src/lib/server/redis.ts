@@ -10,7 +10,8 @@ export function getRedisClient(): Redis {
 			// Reconnect automatically with exponential back-off
 			retryStrategy: (times) => Math.min(times * 100, 3000),
 			lazyConnect: false,
-			family: 0
+			family: 4,
+			connectTimeout: 20000 // Increased timeout for cross-region latency
 		});
 
 		_client.on('error', (err) => {
